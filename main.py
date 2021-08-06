@@ -1,20 +1,20 @@
 # -*- coding: UTF-8 -*-
-"""
-         ██████   █████                      ████            ██████   █████
-        ░░██████ ░░███                      ░░███           ░░██████ ░░███
-         ░███░███ ░███   ██████   █████ ████ ░███   ██████   ░███░███ ░███
-         ░███░░███░███  ░░░░░███ ░░███ ░███  ░███  ░░░░░███  ░███░░███░███
-         ░███ ░░██████   ███████  ░███ ░███  ░███   ███████  ░███ ░░██████
-         ░███  ░░█████  ███░░███  ░███ ░███  ░███  ███░░███  ░███  ░░█████
-         █████  ░░█████░░████████ ░░████████ █████░░████████ █████  ░░█████
-        ░░░░░    ░░░░░  ░░░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░░░ ░░░░░    ░░░░░
+""" =======================================================================
+
+     ██████   █████                      ████            ██████   █████
+    ░░██████ ░░███                      ░░███           ░░██████ ░░███
+     ░███░███ ░███   ██████   █████ ████ ░███   ██████   ░███░███ ░███
+     ░███░░███░███  ░░░░░███ ░░███ ░███  ░███  ░░░░░███  ░███░░███░███
+     ░███ ░░██████   ███████  ░███ ░███  ░███   ███████  ░███ ░░██████
+     ░███  ░░█████  ███░░███  ░███ ░███  ░███  ███░░███  ░███  ░░█████
+     █████  ░░█████░░████████ ░░████████ █████░░████████ █████  ░░█████
+    ░░░░░    ░░░░░  ░░░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░░░ ░░░░░    ░░░░░
 
 ===========================================================================
 ◻ Doc discord.py: https://discordpy.readthedocs.io/en/stable/api.html
 ◻ Dev Discord Guild: https://discord.gg/yEvBg8CPaM
 ◻ YouTube Channel: https://www.youtube.com/channel/UCbl4AHVket_DNhBzQG56f7w
-===========================================================================
-"""
+======================================================================= """
 import os
 import json
 import datetime
@@ -84,9 +84,12 @@ class Bot(commands.Bot):
         self.add_all_cogs()
 
     def add_all_cogs(self):
-        all_cogs = [UnBanCommand(self),BanCommand(self),BackupSystem(self),Analytics(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),RolesSystem(self),VocalSalonSystem(self),PrivateVocalCommand(self),PublicVocalCommand(self),RenameVocalChannelCommand(self),HelpCommand(self)]
-        for cog in all_cogs:
-            self.add_cog(cog)
+        all_commands = [UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),PrivateVocalCommand(self),PublicVocalCommand(self),RenameVocalChannelCommand(self),HelpCommand(self)]
+        for command in all_commands:
+            self.add_cog(command)
+        all_systems = [NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
+        for system in all_systems:
+            self.add_cog(system)
 
     async def on_ready(self):
         await self.change_presence(activity=Activities(version=config["BOT"]["version"]),status=Status.do_not_disturb)

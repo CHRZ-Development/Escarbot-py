@@ -1,5 +1,5 @@
-from discord import Colour,Embed,Message
 from discord.ext import commands
+from discord import Colour,Embed,Message
 
 
 class HelpCommand(commands.Cog):
@@ -51,6 +51,7 @@ class HelpCommand(commands.Cog):
             :white_small_square: `!edit`
             :white_small_square: `!remove`
             :white_small_square: `!ban`
+            :white_small_square: `!unban`
             :white_small_square: `!mute`
             :white_small_square: `!bitrate`
             :white_small_square: `!help`
