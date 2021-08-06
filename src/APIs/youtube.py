@@ -4,7 +4,7 @@ import os
 import httplib2
 
 from typing import Any
-from discord import utils
+from discord import Colour,Embed,utils
 
 
 class YouTubeAPI(object):
@@ -33,12 +33,12 @@ class YouTubeAPI(object):
     def requests(self,max_r=1,p="snippet,contentDetails,id"):
         """ request_youtube( ) -> Send a request to youtube for will get a new videos. """
         request = self.youtube.activities().list(part=p,channelId=self.__channel_id,maxResults=max_r)
-
         try:
             response = request.execute()
-            return response
         except httplib2.error.ServerNotFoundError:
             pass
+        else:
+            return response
 
     async def video_notification_system(self):
         # Notification YouTube system
@@ -51,9 +51,16 @@ class YouTubeAPI(object):
             self.id_all_videos.append(response["items"][0]["contentDetails"]["upload"]["videoId"])
 
     async def send_notification(self,r):
-        chrz_development = utils.get(self.bot.guilds,id=838862631284506705)
-        videos_role = utils.get(chrz_development.roles,id=self.bot.ids[chrz_development.id]['id_role_notify_videos'])
-
-        channel_videos = self.bot.get_channel(self.bot.ids[chrz_development.id]['id_channel_videos'])
-        self.last_video = r["items"][0]["snippet"]["title"]
-        await channel_videos.send(content=f'{videos_role.mention}\n>  **Oh ! __{r["items"][0]["snippet"]["channelTitle"]}__ à publié une __nouvelle vidéo__ !** \n👍 + 💬 + 🔔 = ✅ Merciii !\nhttps://youtu.be/{r["items"][0]["contentDetails"]["upload"]["videoId"]}')
+        for guild in self.bot.guilds:
+            try:
+                self.bot.guilds_data[str(guild.id)]["channels_ID"]["video_notif"]
+            except KeyError:
+                pass
+            else:
+                videos_role = utils.get(guild.roles,id=self.bot.guilds_data[str(guild.id)]["roles"]["🎬"])
+                channel_videos = self.bot.get_channel(self.bot.guilds_data[str(guild.id)]["channels_ID"]["video_notif"])
+                self.last_video = r["items"][0]["snippet"]["title"]
+                video_message = Embed(title="> Un nouveau `🔴 Live`",colour=Colour.from_rgb(255,0,0))
+                video_message.add_field(name=f"{r['items'][0]['snippet']['channelTitle']} vien de sortir une vidéo !",value=f"{videos_role.mention}\nhttps://youtu.be/{r['items'][0]['contentDetails']['upload']['videoId']}")
+                video_message.set_author(name=guild.owner.name,icon_url=guild.owner.avatar_url)
+                await channel_videos.send(embed=video_message)

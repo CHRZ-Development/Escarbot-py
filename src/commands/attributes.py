@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 import os
-import json
 
 from typing import List
 from discord.ext import commands
@@ -11,8 +10,8 @@ class AttributesCommand(commands.Cog):
     """ AttributesCommand() -> Represent the Server Configurator """
     def __init__(self,bot):
         self.bot = bot
-        self.guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
-        self.attribute_func = {"role_emoji": self.attribute_role_emoji,"role_info": self.attribute_role_info,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"rules_message": self.attribute_rules_message,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"criminal_report_channel": self.attribute_criminal_report_channel}
+        self.attribute_func = {"role_emoji": self.attribute_role_emoji,"role_info": self.attribute_role_info,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"rules_message": self.attribute_rules_message,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"criminal_report_channel": self.attribute_criminal_report_channel,"video_notif_channel": self.attribute_video_notif_channel,"live_notif_channel": self.attribute_live_notif_channel,"lvl_up_channel": self.attribute_level_up_channel}
+        self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     @staticmethod
     async def perm_check(ctx,roles_list: List[int]):
@@ -99,6 +98,46 @@ class AttributesCommand(commands.Cog):
                 self.bot.guilds_data[guild_id]["channels_ID"]["criminal_report"] = int(args[0])
             self.refresh_database()
 
+    async def attribute_video_notif_channel(self,ctx,args):
+        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
+        if perm_check == "pass":
+            guild_id = str(ctx.guild.id)
+            try:
+                self.bot.guilds_data[guild_id]["channels_ID"]
+            except KeyError:
+                self.bot.guilds_data[guild_id]["channels_ID"] = {}
+                self.bot.guilds_data[guild_id]["channels_ID"]["video_notif"] = int(args[0])
+            else:
+                self.bot.guilds_data[guild_id]["channels_ID"]["video_notif"] = int(args[0])
+            self.refresh_database()
+
+    async def attribute_level_up_channel(self,ctx,args):
+        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
+        if perm_check == "pass":
+            guild_id = str(ctx.guild.id)
+            try:
+                self.bot.guilds_data[guild_id]["channels_ID"]
+            except KeyError:
+                self.bot.guilds_data[guild_id]["channels_ID"] = {}
+                self.bot.guilds_data[guild_id]["channels_ID"]["lvl_up"] = int(args[0])
+            else:
+                self.bot.guilds_data[guild_id]["channels_ID"]["lvl_up"] = int(args[0])
+            self.refresh_database()
+
+
+    async def attribute_live_notif_channel(self,ctx,args):
+        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
+        if perm_check == "pass":
+            guild_id = str(ctx.guild.id)
+            try:
+                self.bot.guilds_data[guild_id]["channels_ID"]
+            except KeyError:
+                self.bot.guilds_data[guild_id]["channels_ID"] = {}
+                self.bot.guilds_data[guild_id]["channels_ID"]["live_notif"] = int(args[0])
+            else:
+                self.bot.guilds_data[guild_id]["channels_ID"]["live_notif"] = int(args[0])
+            self.refresh_database()
+
     async def attribute_create_vocal_channel(self,ctx,args):
         """ attribute_create_vocal_channel() -> !attribute create_vocal_channel *args
             * It allow to can create a channel custom with anyone !
@@ -126,10 +165,6 @@ class AttributesCommand(commands.Cog):
             else:
                 self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"][command].append(int(role))
             self.refresh_database()
-
-    def refresh_database(self):
-        with open(self.guilds_data_path,"w") as f:
-            json.dump(self.bot.guilds_data,f)
 
     @commands.command(name="attribute")
     @commands.is_owner()

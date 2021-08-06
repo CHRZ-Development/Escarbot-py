@@ -43,7 +43,6 @@ class FileManager(object):
 			data.read(f"{directory}{file}")
 			return data
 
-	@try_load
 	def write(self, data, file: str, directory: Optional[str] = os.getcwd()):
 		""" write( ) -> Write a file.
 				:param data: Specify a variable which contain your data at write.

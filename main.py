@@ -39,6 +39,7 @@ from src.backup_system import BackupSystem
 from src.database_system import DataBaseSystem
 from src.notif_system import NotificationSystem
 from src.vocal_salon_system import VocalSalonSystem
+from src.auto_messages_send_system import AutoMessagesSendSystem
 
 
 def set_permissions() -> Intents:
@@ -83,7 +84,7 @@ class Bot(commands.Bot):
         all_commands = [UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),PrivateVocalCommand(self),PublicVocalCommand(self),RenameVocalChannelCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
-        all_systems = [DataBaseSystem(self),NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
+        all_systems = [AutoMessagesSendSystem(self),DataBaseSystem(self),NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
         for system in all_systems:
             self.add_cog(system)
 

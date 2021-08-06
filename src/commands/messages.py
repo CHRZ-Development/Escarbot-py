@@ -1,5 +1,4 @@
 import os
-import json
 
 from discord import Colour,Embed
 from discord.ext import commands
@@ -9,8 +8,8 @@ class MessagesCommand(commands.Cog):
     """ MessagesCommand() -> Represent the preset messages. """
     def __init__(self,bot):
         self.bot = bot
-        self.send_message_func = {"custom_message": self.custom_message,
-                                  "roles_message": self.roles_message}
+        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message}
+        self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     async def roles_message(self,ctx,colour):
         """ roles_message() -> It allow to attribute a role thanks to reactions below a message. """
@@ -35,49 +34,15 @@ class MessagesCommand(commands.Cog):
             await message.add_reaction(self.bot.guilds_data[guild_id]['roles_emoji_reaction'][emoji])
         self.refresh_database()
 
-    def welcome_message(self):
-        pass
-
     def rules_message(self):
-        pass
-
-    def level_up_message(self):
-        pass
-
-    def live_message(self):
-        pass
-
-    def video_message(self):
-        pass
-
-    def announcements_message(self):
-        pass
-
-    def ban_message(self):
-        pass
-
-    def mute_message(self):
-        pass
-
-    def join_message(self):
-        pass
-
-    def nitro_booster_message(self):
         pass
 
     async def custom_message(self,ctx,messages):
         await ctx.send(content=messages[0])
 
-    def refresh_database(self):
-        with open(os.path.join(f"{os.getcwd()}/res/","guilds_data.json"),"w") as f:
-            json.dump(self.bot.guilds_data,f)
-
     @commands.command(name="send")
     @commands.is_owner()
     async def send_message(self,ctx,option,*args):
         await self.send_message_func[option](ctx,args)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self,event):
-        pass
+        await ctx.message.delete()
 
