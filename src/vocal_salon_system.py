@@ -10,7 +10,8 @@ class VocalSalonSystem(commands.Cog):
 	def __init__(self,bot):
 		self.bot = bot
 		self.last_channel_created = {}
-		self.generic_name = lambda name_member: f'{name_member} Channel.'
+		# Generic name for a vocal channel recently created
+		self.generic_name = lambda name_member: f"{name_member}'s Channel."
 		self.get_category = lambda guild,_id: utils.get(guild.categories,id=_id)
 
 	async def create_vocal(self,guild,member):
@@ -19,7 +20,7 @@ class VocalSalonSystem(commands.Cog):
 		new_channel = await guild.create_voice_channel(self.generic_name(member.name),bitrate=64000,category=self.get_category(guild,self.bot.guilds_data[str(guild.id)]["categories_ID"]["vocals_channel"]))
 		self.last_channel_created[member.id] = int(new_channel.id)
 		# Log
-		print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à crée un salon !")
+		print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à crée un salon dans {guild.name} !")
 		# Move the member to the vocal channel created
 		await new_channel.edit(position=2)
 		await member.move_to(new_channel)
@@ -30,7 +31,7 @@ class VocalSalonSystem(commands.Cog):
 		if before.channel is not None:
 			if (int(before.channel.id) == self.last_channel_created[member.id]) and (len(before.channel.members) == 0):
 				# Log
-				print(f"[{datetime.datetime.today().date()}] Le salon de {member.name} à été supprimé !")
+				print(f"[{datetime.datetime.today().date()}] Le salon de {member.name} à été supprimé dans {member.guild.name} !")
 				return await before.channel.delete()
 
 	@commands.Cog.listener()

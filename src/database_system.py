@@ -6,7 +6,7 @@ from discord.ext.tasks import loop
 
 
 class DataBaseSystem(commands.Cog):
-
+    """ DataBaseSystem() -> Represent the DataBase management. """
     def __init__(self,bot):
         self.bot = bot
 
@@ -56,6 +56,7 @@ class DataBaseSystem(commands.Cog):
     @loop(hours=24)
     async def check_unban(self):
         for guild in self.bot.guilds:
+            # Check for each member
             for member in guild.members:
                 if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
                     if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] >= self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]:

@@ -19,8 +19,8 @@ import os
 import json
 import datetime
 
+from discord import Intents
 from discord.ext import commands
-from discord import Intents,Embed,Status
 
 from src.commands.ban import BanCommand
 from src.commands.unban import UnBanCommand
@@ -31,17 +31,14 @@ from src.commands.public import PublicVocalCommand
 from src.commands.private import PrivateVocalCommand
 from src.commands.attributes import AttributesCommand
 from src.commands.rename import RenameVocalChannelCommand
-
 from src.activities import Activities
 from src.roles_sytem import RolesSystem
+from src.file_manager import FileManager
 from src.analytics_system import Analytics
 from src.backup_system import BackupSystem
 from src.database_system import DataBaseSystem
 from src.notif_system import NotificationSystem
 from src.vocal_salon_system import VocalSalonSystem
-
-from src.scripts import log_settings
-from src.file_manager import FileManager
 
 
 def set_permissions() -> Intents:
@@ -61,7 +58,6 @@ def set_permissions() -> Intents:
 
 file = FileManager()
 config = file.load("cfg.ini",f"{os.getcwd()}/res/")
-log_settings()
 
 
 class Bot(commands.Bot):
@@ -70,17 +66,17 @@ class Bot(commands.Bot):
         commands.Bot.__init__(self,intents=set_permissions(),command_prefix="!",help_command=None)
         self.config = config
         self.file = file
+        # Template for database
         self.template = {"roles_can_attributes": [],"roles_emoji_reaction": {},"functions": {"stat": False,"verif_rules": True,"create_personal_vocal": False},"categories_ID": {"vocals_channel": 0},"vocals_ID": {"create_vocal": 0},"messages_ID": {"roles": 0,"rules": 0,"stat": 0,},"messages": {"welcome": [],"rules": {"authorized": [],"forbidden": [],"verif_rules": ["> Avez-vous pris connaisance des régles ?","Si oui, clické sur la reaction ci-dessous"]}},"roles": {},"roles_info": {}}
         self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None,"Hour": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {"2021-06": 169,"2021-07": 48}}
-
+        # Guilds settings
         guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
         with open(guilds_data_path) as f:
             self.guilds_data = json.load(f)
+        # User database per guilds
         user_info_path = os.path.join(f"{os.getcwd()}/res/","user_data.json")
         with open(user_info_path) as f:
             self.users_data = json.load(f)
-
-        self.create_embed = lambda title,description,color: Embed(title=title,description=description,color=color)
         self.add_all_cogs()
 
     def add_all_cogs(self):
@@ -92,7 +88,7 @@ class Bot(commands.Bot):
             self.add_cog(system)
 
     async def on_ready(self):
-        await self.change_presence(activity=Activities(version=config["BOT"]["version"]),status=Status.do_not_disturb)
+        await self.change_presence(activity=Activities(version=config["BOT"]["version"]))
         print(f"[{datetime.datetime.today().date()}] I'm ready !")
 
 
