@@ -47,7 +47,17 @@ class AutoMessagesSendSystem(commands.Cog):
                 level_up_message = Embed(title="> __**Niveau superieurs !**__",colour=Colour.from_rgb(102,255,255))
                 level_up_message.add_field(name="**Vous avez eu un niveau superieurs**",value=f"Vous avez maintenant le rôle `{role_update}`.")
                 level_up_message.set_author(name=a.name,icon_url=a.avatar_url)
+                get_role = utils.get(a.guild.roles,name=role_update)
+                if get_role.id == int(self.bot.guilds_data[str(a.guild.id)]["roles"]["✅"]):
+                    await self.welcome_message(a)
                 return await channel_lvlup.send(embed=level_up_message)
+
+    async def welcome_message(self,member):
+        text_channel = self.bot.get_channel(int(self.bot.guilds_data[str(member.guild.id)]["channels_ID"]["welcome_channel"]))
+        welcome_message = Embed(title="> **Nice, un nouveau !** 👋",colour=Colour.from_rgb(0,128,255))
+        welcome_message.add_field(name="Je te souhaite la bienvenue !",value=f"{member.mention}\nPrend un ☕ café et vient dans <#839042197629304853>, dit nous coucou ! 😄")
+        welcome_message.set_author(name=member.name,icon_url=member.avatar_url)
+        await text_channel.send(embed=welcome_message)
 
     async def check_user_booster(self,b: Member,a: Member):
         if b.premium_since == a.premium_since:
@@ -60,18 +70,10 @@ class AutoMessagesSendSystem(commands.Cog):
         await channel_lvlup.send(embed=self.bot.create_embed("> __**Wow !**__",f"_ _\n**Merci** {a.mention} **d'avoir boost le serveur !** ❤ ! Vous avez maintenant accès à des avantages !\n_ _",0xff80c0))
 
     @commands.Cog.listener()
-    async def on_member_remove(self,member):
-        pass
-
-    @commands.Cog.listener()
     @has_permissions(manage_roles=True)
     async def on_member_update(self,before,after):
         await self.detect_role_changed(before,after)
         await self.check_user_booster(before,after)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self,event):
-        pass
 
     @commands.Cog.listener()
     async def on_command_error(self,ctx,error):

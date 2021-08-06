@@ -10,7 +10,7 @@ class AttributesCommand(commands.Cog):
     """ AttributesCommand() -> Represent the Server Configurator """
     def __init__(self,bot):
         self.bot = bot
-        self.attribute_func = {"role_emoji": self.attribute_role_emoji,"role_info": self.attribute_role_info,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"rules_message": self.attribute_rules_message,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"criminal_report_channel": self.attribute_criminal_report_channel,"video_notif_channel": self.attribute_video_notif_channel,"live_notif_channel": self.attribute_live_notif_channel,"lvl_up_channel": self.attribute_level_up_channel}
+        self.attribute_func = {"role_emoji": self.attribute_role_emoji,"role_info": self.attribute_role_info,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"rules_message": self.attribute_rules_message,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"channel": self.attribute_channel}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     @staticmethod
@@ -82,60 +82,18 @@ class AttributesCommand(commands.Cog):
             self.bot.guilds_data[guild_id]["messages_ID"]["rules"] = int(args[0])
             self.refresh_database()
 
-    async def attribute_criminal_report_channel(self,ctx,args):
-        """ attribute_criminal_report_channel() -> !attribute criminal_report_channel *args
-            * It allow to display who as been banned !
-                :param args: channel_id | ex: 852576991504105514 """
+    async def attribute_channel(self,ctx,args):
         perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
+        channel_name,channel_id = args
         if perm_check == "pass":
             guild_id = str(ctx.guild.id)
             try:
                 self.bot.guilds_data[guild_id]["channels_ID"]
             except KeyError:
                 self.bot.guilds_data[guild_id]["channels_ID"] = {}
-                self.bot.guilds_data[guild_id]["channels_ID"]["criminal_report"] = int(args[0])
+                self.bot.guilds_data[guild_id]["channels_ID"][channel_name] = int(channel_id)
             else:
-                self.bot.guilds_data[guild_id]["channels_ID"]["criminal_report"] = int(args[0])
-            self.refresh_database()
-
-    async def attribute_video_notif_channel(self,ctx,args):
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            guild_id = str(ctx.guild.id)
-            try:
-                self.bot.guilds_data[guild_id]["channels_ID"]
-            except KeyError:
-                self.bot.guilds_data[guild_id]["channels_ID"] = {}
-                self.bot.guilds_data[guild_id]["channels_ID"]["video_notif"] = int(args[0])
-            else:
-                self.bot.guilds_data[guild_id]["channels_ID"]["video_notif"] = int(args[0])
-            self.refresh_database()
-
-    async def attribute_level_up_channel(self,ctx,args):
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            guild_id = str(ctx.guild.id)
-            try:
-                self.bot.guilds_data[guild_id]["channels_ID"]
-            except KeyError:
-                self.bot.guilds_data[guild_id]["channels_ID"] = {}
-                self.bot.guilds_data[guild_id]["channels_ID"]["lvl_up"] = int(args[0])
-            else:
-                self.bot.guilds_data[guild_id]["channels_ID"]["lvl_up"] = int(args[0])
-            self.refresh_database()
-
-
-    async def attribute_live_notif_channel(self,ctx,args):
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            guild_id = str(ctx.guild.id)
-            try:
-                self.bot.guilds_data[guild_id]["channels_ID"]
-            except KeyError:
-                self.bot.guilds_data[guild_id]["channels_ID"] = {}
-                self.bot.guilds_data[guild_id]["channels_ID"]["live_notif"] = int(args[0])
-            else:
-                self.bot.guilds_data[guild_id]["channels_ID"]["live_notif"] = int(args[0])
+                self.bot.guilds_data[guild_id]["channels_ID"][channel_name] = int(channel_id)
             self.refresh_database()
 
     async def attribute_create_vocal_channel(self,ctx,args):
