@@ -1,10 +1,7 @@
 import os
-import json
-import datetime
 
 from typing import List
 from discord.ext import commands
-from discord.ext.tasks import loop
 from discord import Colour,Embed,utils
 
 
@@ -44,41 +41,11 @@ class BanCommand(commands.Cog):
         perm_check = await self.perm_check(ctx,self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"]["ban"])
         if perm_check == "pass":
             member = utils.get(ctx.guild.members,id=int(member_id))
-
-            self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["IsBanned"] = True
-            self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["NumberOfBans"] += 1
-
-            year,month,day = str(datetime.datetime.today().date()).split('-')
-            today_date_list = [year,month,day,0]
-            for n,key in enumerate(self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"]):
-                self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"][key] = today_date_list[n]
-
             self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] = str(ctx.author.name)
             if how_much_days == "def":
                 self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Definitive"] = True
             else:
                 self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanSystem"] = {"day_counter": 0,"how_much_days": how_much_days}
-
-            # Refresh database
-            with open(self.user_info_path,"w") as f:
-                json.dump(self.bot.users_data,f)
-
             await self.ban_message(ctx,member,how_much_days,why)
             return await member.ban(reason=why)
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        await self.check_unban.start()
-
-    @loop(hours=24)
-    async def check_unban(self):
-        for guild in self.bot.guilds:
-            for member in guild.members:
-                if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
-                    if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] >= self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]:
-                        self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] += 1
-                    else:
-                        await member.unban()
-
-        with open(self.user_info_path,"w") as f:
-            json.dump(self.bot.users_data,f)

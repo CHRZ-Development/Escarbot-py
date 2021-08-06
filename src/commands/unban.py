@@ -1,5 +1,4 @@
 import os
-import json
 
 from typing import List
 from discord import Colour,Embed
@@ -33,8 +32,4 @@ class UnBanCommand(commands.Cog):
                     await ctx.guild.unban(member.user)
                 if n == len(await ctx.guild.ban())-1:
                     return await ctx.send(embed=Embed(title="UUuuuh ?",description=f"Impossible d'enlevé le ban de {member_id} car l'utilisateur est inconnu !",colour=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
-            self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["IsBanned"] = False
-            # Refresh database
-            with open(self.user_info_path,"w") as f:
-                json.dump(self.bot.users_data,f)
 
