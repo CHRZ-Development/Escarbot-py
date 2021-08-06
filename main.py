@@ -1,75 +1,88 @@
 # -*- coding: UTF-8 -*-
-# https://discord.gg/yEvBg8CPaM
-# https://www.youtube.com/channel/UCbl4AHVket_DNhBzQG56f7w
+"""
+         ██████   █████                      ████            ██████   █████
+        ░░██████ ░░███                      ░░███           ░░██████ ░░███
+         ░███░███ ░███   ██████   █████ ████ ░███   ██████   ░███░███ ░███
+         ░███░░███░███  ░░░░░███ ░░███ ░███  ░███  ░░░░░███  ░███░░███░███
+         ░███ ░░██████   ███████  ░███ ░███  ░███   ███████  ░███ ░░██████
+         ░███  ░░█████  ███░░███  ░███ ░███  ░███  ███░░███  ░███  ░░█████
+         █████  ░░█████░░████████ ░░████████ █████░░████████ █████  ░░█████
+        ░░░░░    ░░░░░  ░░░░░░░░   ░░░░░░░░ ░░░░░  ░░░░░░░░ ░░░░░    ░░░░░
+
+===========================================================================
+◻ Doc discord.py: https://discordpy.readthedocs.io/en/stable/api.html
+◻ Dev Discord Guild: https://discord.gg/yEvBg8CPaM
+◻ YouTube Channel: https://www.youtube.com/channel/UCbl4AHVket_DNhBzQG56f7w
+===========================================================================
+"""
 import os
+import json
+import datetime
 
-from discord import Intents,Embed
 from discord.ext import commands
+from discord import Intents,Embed,Status
 
-from commands.private import PrivateVocalCommand
-from commands.public import PublicVocalCommand
-from commands.rename import RenameVocalChannelCommand
-from vocal_salon_system import VocalSalonSystem
-from activities import Activities
-from analytics_system import Analytics
-from backup_system import BackupSystem
-from commands.edit import EditCommand
-from commands.send import SendCommand
-from database_refresh import DataBase
-from notif_system import NotificationSystem
-from roles_sytem import RolesSystem
-from file_manager import FileManager
+from src.commands.help import HelpCommand
+from src.commands.edit import EditCommand
+from src.commands.messages import MessagesCommand
+from src.commands.public import PublicVocalCommand
+from src.commands.private import PrivateVocalCommand
+from src.commands.attributes import AttributesCommand
+from src.commands.rename import RenameVocalChannelCommand
+
+from src.activities import Activities
+from src.roles_sytem import RolesSystem
+from src.analytics_system import Analytics
+from src.backup_system import BackupSystem
+from src.notif_system import NotificationSystem
+from src.vocal_salon_system import VocalSalonSystem
+
+from src.scripts import log_settings
+from src.file_manager import FileManager
 
 
-def set_permissions():
-	perms = Intents.all()
-	perms.presences = True
-	perms.members = True
-	perms.messages = True
-	perms.guilds = True
-	perms.guild_messages = True
-	perms.guild_reactions = True
-	perms.reactions = True
-	perms.voice_states = True
-	return perms
+def set_permissions() -> Intents:
+    """ set_permission() -> All permission for the Bot."""
+    perms = Intents.all()
+    perms.guilds = True
+    perms.members = True
+    perms.messages = True
+    perms.reactions = True
+    perms.presences = True
+    perms.voice_states = True
+    perms.guild_messages = True
+    perms.guild_reactions = True
+    return perms
 
 
 file = FileManager()
-config = file.load('cfg.ini',f'{os.getcwd()}/res/')
+config = file.load("cfg.ini",f"{os.getcwd()}/res/")
+log_settings()
 
 
 class Bot(commands.Bot):
+    """ Bot() -> Represent a Bot discord """
+    def __init__(self):
+        commands.Bot.__init__(self,intents=set_permissions(),command_prefix="!",help_command=None)
+        self.config = config
+        self.file = file
+        self.template = {"roles_can_attributes": [],"roles_emoji_reaction": {},"functions": {"stat": False,"verif_rules": True,"create_personal_vocal": False},"categories_ID": {"vocals_channel": 0},"vocals_ID": {"create_vocal": 0},"messages_ID": {"roles": 0,"rules": 0,"stat": 0,},"messages": {"welcome": [],"rules": {"authorized": [],"forbidden": [],"verif_rules": ["> Avez-vous pris connaisance des régles ?","Si oui, clické sur la reaction ci-dessous"]}},"roles": {},"roles_info": {}}
 
-	def __init__(self):
-		commands.Bot.__init__(self,command_prefix='!',intents=set_permissions())
+        guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
+        with open(guilds_data_path) as f:
+            self.guilds_data = json.load(f)
 
-		# ID Guilds
-		self.chrz_development = 838862631284506705
-		self.aventurabuild = 846458770963169360
-		self.emoji_check = "✅"
-		self.actv = Activities(version=config["BOT"]["version"])
+        self.create_embed = lambda title,description,color: Embed(title=title,description=description,color=color)
+        self.add_all_cogs()
 
-		self.file = file
-		guilds_data = self.file.load('guilds_data.json', f'{os.getcwd()}/res/')
-		self.roles_index = {838862631284506705: guilds_data["838862631284506705"]["roles_index"],
-							846458770963169360: guilds_data["846458770963169360"]["roles_index"]}
-		self.attribute_index = {838862631284506705: guilds_data["838862631284506705"]["attribute_index"],
-								846458770963169360: guilds_data["846458770963169360"]["attribute_index"]}
-		self.ids = {838862631284506705: guilds_data["838862631284506705"]["ids"],
-					846458770963169360: guilds_data["846458770963169360"]["ids"]}
+    def add_all_cogs(self):
+        all_cogs = [BackupSystem(self),Analytics(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),RolesSystem(self),VocalSalonSystem(self),PrivateVocalCommand(self),PublicVocalCommand(self),RenameVocalChannelCommand(self),HelpCommand(self)]
+        for cog in all_cogs:
+            self.add_cog(cog)
 
-		self.create_embed = lambda title,description,color: Embed(title=title,description=description,color=color)
-
-		self.add_all_cogs()
-
-	def add_all_cogs(self):
-		all_obj = [Analytics(self),NotificationSystem(self),VocalSalonSystem(self),BackupSystem(self),RolesSystem(self),DataBase(self),EditCommand(self),SendCommand(self),RenameVocalChannelCommand(self),PrivateVocalCommand(self),PublicVocalCommand(self)]
-		for obj in all_obj:
-			self.add_cog(obj)
-
-	async def on_ready(self):
-		await self.change_presence(activity=self.actv)
-		print("[ ! Info ] Je suis prêt !\n=-----------------------=")
+    async def on_ready(self):
+        await self.change_presence(activity=Activities(version=config["BOT"]["version"]),status=Status.do_not_disturb)
+        print(f"[{datetime.datetime.today().date()}] I'm ready !")
 
 
 escarbot = Bot()

@@ -13,7 +13,7 @@ class PrivateVocalCommand( commands.Cog ):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.command(name= 'private')
+	@commands.command(name='private')
 	async def make_private_vocal(self, ctx):
 		vocal_channel = ctx.author.voice
 

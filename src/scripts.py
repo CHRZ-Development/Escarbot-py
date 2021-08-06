@@ -1,4 +1,6 @@
 import os
+import datetime
+import logging
 
 from discord import utils
 
@@ -26,3 +28,9 @@ def python_command_only_can_execute(ctx):
 		return ctx.channel.id in condition
 	except KeyError:
 		return ctx.channel.id == ids[str(guild.id)]['id_channel_commandes']
+
+
+def log_settings():
+	path_log = os.path.join(f"{os.getcwd()}/res/logs/",f"[{datetime.datetime.today().date()}].log")
+	return logging.basicConfig(filename=path_log,encoding="utf-8",level=logging.DEBUG)
+
