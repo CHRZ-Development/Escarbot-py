@@ -28,11 +28,12 @@ class RolesSystem(commands.Cog):
 		guild = utils.get(self.bot.guilds,id=event.guild_id)
 		member = utils.get(guild.members,id=event.user_id)
 
-		if member.bot is False:
-			# What message ?
-			for key in self.bot.guilds_data[str(event.guild_id)]["messages_ID"]:
-				# If two ID is the same.
-				if int(event.message_id) == int(self.bot.guilds_data[str(event.guild_id)]["messages_ID"][key]):
-					# Remove role
-					return await self.edit_role("remove",event.guild_id,self.bot.guilds_data[str(event.guild_id)]["roles"][str(event.emoji)],member)
+		if member is not None:
+			if member.bot is False:
+				# What message ?
+				for key in self.bot.guilds_data[str(event.guild_id)]["messages_ID"]:
+					# If two ID is the same.
+					if int(event.message_id) == int(self.bot.guilds_data[str(event.guild_id)]["messages_ID"][key]):
+						# Remove role
+						return await self.edit_role("remove",event.guild_id,self.bot.guilds_data[str(event.guild_id)]["roles"][str(event.emoji)],member)
 
