@@ -62,7 +62,7 @@ class AutoMessagesSendSystem(commands.Cog):
     async def create_vocal_message(self,member):
         text_channel = self.bot.get_channel(int(self.bot.guilds_data[str(member.guild.id)]["channels_ID"]["command_channel"]))
         create_vocal_message = Embed(title="> **Vous venez de crée un salon vocal !**",colour=Colour.from_rgb(96,96,96))
-        create_vocal_message.add_field(name=f"Vous avez droit désormais grâce à votre salon <#{member.voice.channel.id}>:",value="Commandes:\n:white_small_square: `!myvocal` _(alias `!mv`)_\n_Pour plus d'info sur les commandes, entrez `!help <commande>`_\n\n:white_small_square: Ecouté de la <#867173777485725706>\n_Pour plus d'info sur le Bot musique, entrez `.help`_")
+        create_vocal_message.add_field(name=f"Vous avez droit désormais grâce à votre salon:",value="Commandes:\n:white_small_square: `!myvocal` _(alias `!mv`)_\n_Pour plus d'info sur les commandes, entrez `!help <commande>`_\n\n:white_small_square: Ecouté de la <#867173777485725706>\n_Pour plus d'info sur le Bot musique, entrez `.help`_")
         create_vocal_message.set_author(name=member.name,icon_url=member.avatar_url)
         create_vocal_message.set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url)
         await text_channel.send(embed=create_vocal_message)

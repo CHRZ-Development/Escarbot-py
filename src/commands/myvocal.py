@@ -54,7 +54,7 @@ class MyVocalCommand(commands.Cog):
     async def bitrate_vocal(self,ctx,args):
         in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
         if in_vocal:
-            await vocal_channel.edit(bitrate=args[1])
+            await vocal_channel.edit(bitrate=int(args[1])*1000)
 
     async def public_vocal(self,ctx,args):
         in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
