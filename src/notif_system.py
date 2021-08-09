@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord.ext.tasks import loop
-from APIs.twitch import TwitchAPI
-from APIs.youtube import YouTubeAPI
+from src.APIs.twitch import TwitchAPI
+from src.APIs.youtube import YouTubeAPI
 
 
 class NotificationSystem(commands.Cog):

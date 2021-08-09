@@ -53,15 +53,17 @@ class HelpCommand(commands.Cog):
             :white_small_square: `!ban`
             :white_small_square: `!unban`
             :white_small_square: `!mute`
-            :white_small_square: `!bitrate`
             :white_small_square: `!help`
             :white_small_square: `!nickname`
             :white_small_square: `!ping`
-            :white_small_square: `!private`
-            :white_small_square: `!public`
+            :white_small_square: `!myvocal`
+            """
+            list_alias_msg = """
+            :white_small_square: `!mv` _(== `!myvocal`)_
             """
             help_message.add_field(name="**Liste des commandes disponible:**",value=list_commands_msg)
-            help_message.set_footer(text="Pour plus d'info, tapez !help <commandes>.")
+            help_message.add_field(name="Liste des alias:",value=list_alias_msg)
+            help_message.set_footer(text=f"Pour plus d'info, tapez !help <commandes>. Votre serviteur {self.bot.user.name} vous affichera plus de detail",icon_url=self.bot.user.avatar_url)
         # !help <command1>
         if len(args) == 1:
             help_message = Embed(title=f"> **Vous avez appelé la commande `!help {args[0]}`.**",color=colour_embed)
