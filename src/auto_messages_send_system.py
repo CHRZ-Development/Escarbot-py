@@ -1,5 +1,7 @@
+import datetime
+
 from discord.ext import commands
-from discord import Colour,Embed,Member,utils
+from discord import Colour,Embed,Member,utils,Forbidden
 from discord.ext.commands import has_permissions
 
 
@@ -84,14 +86,28 @@ class AutoMessagesSendSystem(commands.Cog):
         mp_ticket_message = Embed(title="> **Vous trouvez ce ban injustifier ?**",colour=Colour.from_rgb(255,0,0))
         mp_ticket_message.add_field(name="Voici un Discord pour pouvoir êtres en relaxion avec un membre du staff",value="__https://discord.gg/Se2phANYrG__")
         mp_ticket_message.set_footer(text=f"Signé {guild.owner.name}.",icon_url=guild.owner.avatar_url)
-        await member.send(embed=mp_ban_message)
-        await member.send(embed=mp_ticket_message)
+        try:
+            await member.send(embed=mp_ban_message)
+            await member.send(embed=mp_ticket_message)
+        except Forbidden:
+            print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'a pas pu·e êtres prevenu de sont ban")
         try:
             text_channel = utils.get(guild.text_channels,id=self.bot.guilds_data[str(guild.id)]["channels_ID"]["criminal_report"])
         except KeyError:
             pass
         else:
             await text_channel.send(embed=ban_message)
+
+    async def unban_message(self,guild,member):
+        # MP Message
+        mp_unban_message = Embed(title=f"> Vous etes unban du serveur {guild.name}",color=Colour.from_rgb(255,0,0))
+        mp_unban_message.add_field(name="__Information du unban__:",value=f"Vous etes plus banni·e du serveur Discord !")
+        mp_unban_message.set_author(name=guild.name,icon_url=guild.icon_url)
+        mp_unban_message.set_footer(text=member.name,icon_url=member.avatar_url)
+        try:
+            await member.send(embed=mp_unban_message)
+        except Forbidden:
+            print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'a pas pu·e êtres prevenu de sont unban")
 
     async def check_user_booster(self,b: Member,a: Member):
         if b.premium_since == a.premium_since:
@@ -107,7 +123,13 @@ class AutoMessagesSendSystem(commands.Cog):
     async def on_member_ban(self,guild,user):
         how_much_days = self.bot.users_data[str(guild.id)][str(user.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]
         why = self.bot.users_data[str(guild.id)][str(user.id)]["CriminalRecord"]["BanInfo"]["Why"]
+        print(f"[{datetime.datetime.today().date()}] L'utilisateur {user.name} à étais ban")
         await self.ban_message(guild,user,how_much_days,why)
+
+    @commands.Cog.listener()
+    async def on_member_unban(self,guild,user):
+        print(f"[{datetime.datetime.today().date()}] L'utilisateur {user.name} à étais unban")
+        await self.unban_message(guild,user)
 
     @commands.Cog.listener()
     @has_permissions(manage_roles=True)

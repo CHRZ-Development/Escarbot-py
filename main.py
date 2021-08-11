@@ -83,7 +83,7 @@ class Bot(commands.Bot):
         all_commands = [PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
-        all_systems = [AutoMessagesSendSystem(self),DataBaseSystem(self),NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
+        all_systems = [DataBaseSystem(self),AutoMessagesSendSystem(self),NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
         for system in all_systems:
             self.add_cog(system)
 

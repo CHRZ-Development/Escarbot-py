@@ -61,10 +61,17 @@ class DataBaseSystem(commands.Cog):
     async def check_unban(self):
         for guild in self.bot.guilds:
             # Check for each member
-            for member in guild.members:
-                if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
-                    if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] >= self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]:
-                        self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] += 1
-                    else:
-                        await guild.unban(member)
+            for ban in await guild.bans():
+                member = ban.user
+                try:
+                    self.bot.users_data[str(guild.id)][str(member.id)]
+                except KeyError:
+                    print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'existe pas ou est ban definitivement")
+                else:
+                    if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
+                        if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] >= self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]:
+                            self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] += 1
+                            print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} lui reste {self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['day_counter'] - self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['how_much_days']} avant d'êtres unban.")
+                        else:
+                            await guild.unban(member)
         self.refresh_database()
