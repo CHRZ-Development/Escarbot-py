@@ -60,7 +60,7 @@ class DataBaseSystem(commands.Cog):
     @loop(hours=24)
     async def check_unban(self):
         for guild in self.bot.guilds:
-            # Check for each member
+            # Check for each member banned
             for ban in await guild.bans():
                 member = ban.user
                 try:
@@ -69,9 +69,10 @@ class DataBaseSystem(commands.Cog):
                     print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'existe pas ou est ban definitivement")
                 else:
                     if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
-                        if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] >= self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]:
+                        if int(self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"]) >= int(self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]):
                             self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] += 1
                             print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} lui reste {self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['day_counter'] - self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['how_much_days']} avant d'êtres unban.")
                         else:
                             await guild.unban(member)
+                        print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à eu sa verification effectuée ✅🧐")
         self.refresh_database()
