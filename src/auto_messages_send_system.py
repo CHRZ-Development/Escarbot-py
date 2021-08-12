@@ -1,7 +1,7 @@
 import datetime
 
 from discord.ext import commands
-from discord import Colour,Embed,Member,utils,Forbidden
+from discord import Colour,Embed,Member,utils,Forbidden,NotFound
 from discord.ext.commands import has_permissions
 
 
@@ -59,6 +59,7 @@ class AutoMessagesSendSystem(commands.Cog):
         welcome_message = Embed(title="> **Nice, un nouveau !** 👋",colour=Colour.from_rgb(0,128,255))
         welcome_message.add_field(name="Je te souhaite la bienvenue !",value=f"{member.mention}\nPrend un ☕ café et vient dans <#839042197629304853>, dit nous coucou ! 😄")
         welcome_message.set_author(name=member.name,icon_url=member.avatar_url)
+        print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} est arrivée dans le serveur !")
         await text_channel.send(embed=welcome_message)
 
     async def create_vocal_message(self,member):
@@ -142,6 +143,30 @@ class AutoMessagesSendSystem(commands.Cog):
         if before.channel is not None:
             if int(before.channel.id) == int(self.bot.guilds_data[str(member.guild.id)]["vocals_ID"]["create_vocal"]):
                 await self.create_vocal_message(member)
+
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        message_content,*message_url = str(message.content).split('/')
+        if len(message_url) >= 2:
+            if message_url[1] == "discord.com" and message_url[2] == "channels":
+                if int(message_url[3]) == int(message.guild.id):
+                    text_channel = self.bot.get_channel(int(message_url[4]))
+                    try:
+                        msg = await text_channel.fetch_message(int(message_url[5]))
+                    except NotFound:
+                        pass
+                    else:
+                        if len(msg.embeds) >= 1:
+                            msg_found = Embed(title=msg.embeds[0].title,description=msg.embeds[0].description)
+                            for field in msg.embeds[0].fields:
+                                msg_found.add_field(name=field.name,value=field.value)
+                            msg_found.set_footer(text=f"Publié sur {text_channel.name} | Message posté le {msg.created_at}",icon_url=msg.guild.icon_url)
+                        else:
+                            msg_found = Embed()
+                            msg_found.add_field(name=f"Message posté le {msg.created_at}",value=msg.content)
+                            msg_found.set_footer(text=f"Publié sur {text_channel.name}",icon_url=msg.guild.icon_url)
+                        msg_found.set_author(name=msg.author.name,icon_url=msg.author.avatar_url)
+                        await message.channel.send(embed=msg_found)
 
     @commands.Cog.listener()
     async def on_command_error(self,ctx,error):

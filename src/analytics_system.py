@@ -14,6 +14,7 @@ class Analytics(commands.Cog):
 	async def refresh_counter(self,guild):
 		""" refresh_counter() -> Refresh the vocal channel title which display the stat. """
 		vocal_channel = utils.get(guild.voice_channels,id=int(self.bot.guilds_data[str(guild.id)]["messages_ID"]["stat"]))
+		print(f"[{datetime.datetime.today().date()}] Le compteur de membre à étais actualisée, il affiche {self.title_members_channel(self.stats[guild.id]['all_members'])}")
 		return await vocal_channel.edit(name=self.title_members_channel(self.stats[guild.id]["all_members"]))
 
 	async def count_members(self,guild):
@@ -21,8 +22,6 @@ class Analytics(commands.Cog):
 		role_members = utils.get(guild.roles,id=int(self.bot.guilds_data[str(guild.id)]["roles"]["✅"]))
 		self.stats[guild.id] = {"all_members": 0}
 		self.stats[guild.id]["all_members"] = len(role_members.members)
-		# Log
-		print(f"[{datetime.datetime.today().date()}] Le compteur de membre à étais actualisée, il affiche {self.title_members_channel(self.stats[guild.id]['all_members'])}")
 		return await self.refresh_counter(guild)
 
 	@commands.Cog.listener()

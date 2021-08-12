@@ -46,6 +46,7 @@ class DataBaseSystem(commands.Cog):
         today_date_list = [year,month,day,0]
         for n,key in enumerate(self.bot.users_data[guild_id][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"]):
             self.bot.users_data[guild_id][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"][key] = today_date_list[n]
+        self.refresh_database()
 
     @commands.Cog.listener()
     async def on_member_unban(self,guild,user):
@@ -68,10 +69,11 @@ class DataBaseSystem(commands.Cog):
                 except KeyError:
                     print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'existe pas ou est ban definitivement")
                 else:
-                    if (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]) and (self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False):
+                    print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} vas avoir sa verification 🧐")
+                    if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False:
                         if int(self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"]) >= int(self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]):
                             self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanSystem"]["day_counter"] += 1
-                            print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} lui reste {self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['day_counter'] - self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['how_much_days']} avant d'êtres unban.")
+                            print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} lui reste {self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['how_much_days'] - self.bot.users_data[str(guild.id)][str(member.id)]['CriminalRecord']['BanSystem']['day_counter']} avant d'êtres unban.")
                         else:
                             await guild.unban(member)
                         print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à eu sa verification effectuée ✅🧐")

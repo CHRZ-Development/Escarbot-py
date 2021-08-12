@@ -89,7 +89,12 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         await self.change_presence(activity=Activities(version=config["BOT"]["version"]))
-        print(f"[{datetime.datetime.today().date()}] I'm ready !")
+        print(f"==================================================")
+        print(f"✅ Est lancée depuis {datetime.datetime.today().date()}")
+        print(f"🤖 Bot: {self.user.name}")
+        print(f"🟢 Connecté sur: {len(self.guilds)} serveurs")
+        print(f"==================================================")
+        print(f"[{datetime.datetime.today().date()}] Je suis prêt ! 👌")
 
 
 escarbot = Bot()
