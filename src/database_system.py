@@ -9,7 +9,7 @@ class DataBaseSystem(commands.Cog):
     """ DataBaseSystem() -> Represent the DataBase management. """
     def __init__(self,bot):
         self.bot = bot
-        self.refresh_database = lambda file: self.bot.file.write(self.bot.guilds_data,file,f"{os.getcwd()}/res/")
+        self.refresh_database = lambda file: self.bot.file.write(self.bot.guilds_data if file == "guilds_data.json" else self.bot.users_data,file,f"{os.getcwd()}/res/")
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
@@ -64,8 +64,11 @@ class DataBaseSystem(commands.Cog):
         try:
             self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
         except KeyError:
-            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
-            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+            try:
+                self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
+                self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+            except KeyError:
+                pass
         self.refresh_database("users_data.json")
 
     @loop(hours=24)

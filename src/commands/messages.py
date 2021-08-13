@@ -8,7 +8,7 @@ class MessagesCommand(commands.Cog):
     """ MessagesCommand() -> Represent the preset messages. """
     def __init__(self,bot):
         self.bot = bot
-        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message}
+        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     async def roles_message(self,ctx,colour):
@@ -39,6 +39,28 @@ class MessagesCommand(commands.Cog):
 
     async def custom_message(self,ctx,messages):
         await ctx.send(content=messages[0])
+
+    async def embed_message(self,ctx,messages):
+        opt1,*tle = messages[0].split("=")
+        opt2,*color = messages[1].split("=")
+        if opt1 == "title":
+            if opt2 in ["colour", "color"]:
+                r,g,b = str(color[0]).split(",")
+                custom_message = Embed(title="".join(tle),colour=Colour.from_rgb(int(r),int(g),int(b)))
+            else:
+                custom_message = Embed(title="".join(tle))
+        else:
+            custom_message = Embed()
+        titles = [];details = []
+        for n,title in enumerate(messages):
+            if int(n) in [2,4,6,8,10,12,14,16,18,20]:
+                titles.append(title)
+            else:
+                if int(n) >= 2:
+                    details.append(title)
+        for n,part in enumerate(titles):
+            custom_message.add_field(name=titles[n],value=details[n])
+        await ctx.send(embed=custom_message)
 
     @commands.command(name="send")
     @commands.is_owner()
