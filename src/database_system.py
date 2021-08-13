@@ -58,6 +58,16 @@ class DataBaseSystem(commands.Cog):
     async def on_ready(self):
         await self.check_unban.start()
 
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        year,month,day = str(datetime.datetime.today().date()).split("-")
+        try:
+            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+        except KeyError:
+            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
+            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+        self.refresh_database()
+
     @loop(hours=24)
     async def check_unban(self):
         for guild in self.bot.guilds:

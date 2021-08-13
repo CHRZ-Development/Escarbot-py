@@ -27,6 +27,7 @@ from src.commands.help import HelpCommand
 from src.commands.edit import EditCommand
 from src.commands.ping import PingCommand
 from src.commands.unban import UnBanCommand
+from src.commands.userinfo import UserInfoCommand
 from src.commands.myvocal import MyVocalCommand
 from src.commands.messages import MessagesCommand
 from src.commands.attributes import AttributesCommand
@@ -80,7 +81,7 @@ class Bot(commands.Bot):
         self.add_all_cogs()
 
     def add_all_cogs(self):
-        all_commands = [PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
+        all_commands = [UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
         all_systems = [DataBaseSystem(self),AutoMessagesSendSystem(self),NotificationSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
