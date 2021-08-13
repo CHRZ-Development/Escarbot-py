@@ -9,32 +9,32 @@ class DataBaseSystem(commands.Cog):
     """ DataBaseSystem() -> Represent the DataBase management. """
     def __init__(self,bot):
         self.bot = bot
-        self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
+        self.refresh_database = lambda file: self.bot.file.write(self.bot.guilds_data,file,f"{os.getcwd()}/res/")
 
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
         """ on_guild_join() -> Create database for the guild which as been added the Bot. """
         self.bot.guilds_data[str(guild.id)] = self.bot.template
-        self.refresh_database()
+        self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_guild_remove(self,guild):
         """ on_guild_remove() -> Create database for the guild which as been removed the Bot. """
         self.bot.guilds_data.pop(str(guild.id))
-        self.refresh_database()
+        self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_member_join(self,member):
         """ on_member_join() -> Create database for the member who as been joined in the guild. """
         self.bot.guilds_data[str(member.guild.id)][str(member.id)] = self.bot.template_user
-        self.refresh_database()
+        self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_member_remove(self,member):
         """ on_member_remove() -> Create database for the member who as been removed in the guild. """
         if self.bot.users_data[str(member.guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"] is False:
             self.bot.guilds_data[str(member.guild.id)].pop(str(member.id))
-            self.refresh_database()
+            self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_member_ban(self,guild,user):
@@ -46,13 +46,13 @@ class DataBaseSystem(commands.Cog):
         today_date_list = [year,month,day,0]
         for n,key in enumerate(self.bot.users_data[guild_id][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"]):
             self.bot.users_data[guild_id][member_id]["CriminalRecord"]["BanInfo"]["WhenHeAtBeenBanned"][key] = today_date_list[n]
-        self.refresh_database()
+        self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_member_unban(self,guild,user):
         """ on_member_unban() -> Update database for the member who as been unbanned in the guild. """
         self.bot.users_data[str(guild.id)][str(user.id)]["CriminalRecord"]["BanInfo"]["IsBanned"] = False
-        self.refresh_database()
+        self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -66,7 +66,7 @@ class DataBaseSystem(commands.Cog):
         except KeyError:
             self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
             self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-        self.refresh_database()
+        self.refresh_database("users_data.json")
 
     @loop(hours=24)
     async def check_unban(self):
@@ -87,4 +87,4 @@ class DataBaseSystem(commands.Cog):
                         else:
                             await guild.unban(member)
                         print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à eu sa verification effectuée ✅🧐")
-        self.refresh_database()
+        self.refresh_database("users_data.json")

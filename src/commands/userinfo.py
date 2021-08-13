@@ -29,6 +29,8 @@ class UserInfoCommand(commands.Cog):
                                                                                      ❔ Pourquoi: `{self.bot.users_data[str(user.guild.id)][str(user.id)]["CriminalRecord"]["BanInfo"]["Why"]}`
                                                                                      💥 Definitive: `{"Non" if self.bot.users_data[str(user.guild.id)][str(user.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False else "Oui"}`
                                                                                      📅 Combient de jours: `{self.bot.users_data[str(user.guild.id)][str(user.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]}`""",inline=False)
+        else:
+            info_message.add_field(name="❌ **|** Nombre de BAN(s) (**Faite attention !**):",value=f"`{self.bot.users_data[str(user.guild.id)][str(user.id)]['CriminalRecord']['NumberOfBans']}`",inline=False)
         if user.activity is None:
             info_message.add_field(name=f"👀 **|** Activitée:",value=f"`Rien`")
         else:
@@ -48,6 +50,7 @@ class UserInfoCommand(commands.Cog):
         info_message.add_field(name=f"💬 **|** Nombres de messages envoyée:",value=f"`{all_messages}`")
         info_message.add_field(name="🎖 Rôles:",value=" ".join(roles),inline=False)
         info_message.set_author(name=user.name,icon_url=user.avatar_url)
+        info_message.set_footer(text=f"Effectué avec succès grâce à Escarbot, votre serviteur !",icon_url=self.bot.user.avatar_url)
         return await ctx.send(embed=info_message)
 
     @commands.command(name="userinfo",aliases=["ui"])
