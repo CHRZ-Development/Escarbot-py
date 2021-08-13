@@ -76,7 +76,7 @@ class Bot(commands.Bot):
         with open(guilds_data_path) as f:
             self.guilds_data = json.load(f)
         # User database per guilds
-        user_info_path = os.path.join(f"{os.getcwd()}/res/","user_data.json")
+        user_info_path = os.path.join(f"{os.getcwd()}/res/","users_data.json")
         with open(user_info_path) as f:
             self.users_data = json.load(f)
         self.add_all_cogs()
@@ -85,7 +85,7 @@ class Bot(commands.Bot):
         all_commands = [ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
-        all_systems = [DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
+        all_systems = [NotificationSystem(self),DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
         for system in all_systems:
             self.add_cog(system)
 
@@ -97,30 +97,6 @@ class Bot(commands.Bot):
         print(f"🟢 Connecté sur: {len(self.guilds)} serveurs")
         print(f"==================================================")
         print(f"[{datetime.datetime.today().date()}] Je suis prêt ! 👌")
-
-        for guild in self.guilds:
-            for member in guild.members:
-                for channel in guild.channels:
-                    print(channel)
-                    try:
-                        channel.history()
-                    except AttributeError:
-                        pass
-                    else:
-                        async for message in channel.history(limit=999999999999999999999999):
-                            if message.author == member:
-                                date,hour = str(message.created_at).split(" ")
-                                year,month,day = str(date).split("-")
-                                try:
-                                    self.users_data[str(guild.id)][str(member.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-                                except KeyError:
-                                    try:
-                                        self.users_data[str(guild.id)][str(member.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
-                                        self.users_data[str(guild.id)][str(member.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-                                    except KeyError:
-                                        pass
-                                print(member)
-        self.file.write(self.users_data,"users_data.json",f"{os.getcwd()}/res/")
 
 
 escarbot = Bot()
