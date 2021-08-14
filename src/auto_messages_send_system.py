@@ -111,13 +111,17 @@ class AutoMessagesSendSystem(commands.Cog):
             print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} n'a pas pu·e êtres prevenu de sont unban")
 
     async def message_from_url_discord(self,message):
-        message_content,*message_url = str(message.content).split('/')
-        # Stock messages
-        final_messages = []
-        # If URL contain "discord.com" and "channels"
-        if message_url[1] == "discord.com" and message_url[2] == "channels":
-            # discord.com/channels/<guild_id>
-            if int(message_url[3]) == int(message.guild.id):
+        if message.author.bot is False:
+            message_content,*message_url = str(message.content).split('/')
+            # Stock messages
+            final_messages = []
+            try:
+                message[1]
+            except KeyError:
+                return None
+            # discord.com/channels
+            # If URL contain "discord.com" and "channels"
+            if message_url[1] == "discord.com" and message_url[2] == "channels":
                 # discord.com/channels/<guild_id>/<text_channel>
                 text_channel = self.bot.get_channel(int(message_url[4]))
                 try:
@@ -130,8 +134,8 @@ class AutoMessagesSendSystem(commands.Cog):
                     # If contain multiple Embeds
                     if len(msg.embeds) >= 1:
                         for n,embed in enumerate(msg.embeds):
-                            final_messages.append(Embed(title=msg.embed.title,description=msg.embed.description))
-                            for field in msg.embed.fields:
+                            final_messages.append(Embed(title=embed.title,description=embed.description))
+                            for field in embed.fields:
                                 final_messages[n].add_field(name=field.name,value=field.value)
                             final_messages[n].set_footer(text=f"Le message a été publié sur sur {text_channel.name} dans {message.guild.name}. | Posté le {msg.created_at.date()}",icon_url=msg.guild.icon_url)
                     else:
