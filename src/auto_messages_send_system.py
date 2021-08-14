@@ -116,12 +116,12 @@ class AutoMessagesSendSystem(commands.Cog):
             # Stock messages
             final_messages = []
             try:
-                message[1]
-            except KeyError:
+                message_url[1]
+            except (KeyError,IndexError):
                 return None
             # discord.com/channels
             # If URL contain "discord.com" and "channels"
-            if message_url[1] == "discord.com" and message_url[2] == "channels":
+            if (message_url[1] == "discord.com") and (message_url[2] == "channels"):
                 # discord.com/channels/<guild_id>/<text_channel>
                 text_channel = self.bot.get_channel(int(message_url[4]))
                 try:
@@ -134,18 +134,18 @@ class AutoMessagesSendSystem(commands.Cog):
                     # If contain multiple Embeds
                     if len(msg.embeds) >= 1:
                         for n,embed in enumerate(msg.embeds):
-                            final_messages.append(Embed(title=embed.title,description=embed.description))
+                            final_messages.append(Embed(title=str(embed.title),description=str(embed.description)))
                             for field in embed.fields:
                                 final_messages[n].add_field(name=field.name,value=field.value)
-                            final_messages[n].set_footer(text=f"Le message a été publié sur sur {text_channel.name} dans {message.guild.name}. | Posté le {msg.created_at.date()}",icon_url=msg.guild.icon_url)
+                            final_messages[n].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}. | Posté le {msg.created_at.date()}",icon_url=msg.guild.icon_url)
                     else:
                         final_messages.append(Embed())
                         final_messages[0].add_field(name=f"Message posté le {msg.created_at.date()}",value=msg.content)
-                        final_messages[0].set_footer(text=f"Le message a été publié sur sur {text_channel.name} dans {message.guild.name}.",icon_url=msg.guild.icon_url)
+                        final_messages[0].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}.",icon_url=msg.guild.icon_url)
                     # Send message
-                    for msg in final_messages:
-                        msg.set_author(name=msg.author.name,icon_url=msg.author.avatar_url)
-                        await message.channel.send(embed=msg)
+                    for embd in final_messages:
+                        embd.set_author(name=msg.author.name,icon_url=msg.author.avatar_url)
+                        await message.channel.send(embed=embd)
 
     async def check_user_booster(self,b: Member,a: Member):
         if b.premium_since == a.premium_since:
