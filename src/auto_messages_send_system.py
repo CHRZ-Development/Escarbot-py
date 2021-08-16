@@ -185,7 +185,4 @@ class AutoMessagesSendSystem(commands.Cog):
     async def on_message(self,message):
         await self.message_from_url_discord(message)
 
-    @commands.Cog.listener()
-    async def on_command_error(self,ctx,error):
-        return await ctx.send(embed=Embed(title="> ⚠ **Commande introuvable !**",description=error,color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
 

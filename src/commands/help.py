@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from discord.ext import commands
-from discord import Colour,Embed,Message
+from discord import Colour,Embed
 
 
 class HelpCommand(commands.Cog):
@@ -89,30 +89,35 @@ class HelpCommand(commands.Cog):
                     "roles_message": " ",
                     "rules_message": " "
                     }
+                ],
+            "nickname": [
+                """
+                **Permet de changé votre pseudo dans ce serveur Discord.**
+                __Exemple__: !nickname "<Nouveau-Pseudo>"
+                """
                 ]
             }
 
-    @commands.command(name='help')
-    async def help_command(self,ctx,*args) -> Message:
+    async def execute(self,ctx,args):
         colour_embed = Colour.from_rgb(96,96,96)
         # !help
         if len(args) == 0:
             help_message = Embed(title="> **Vous avez appelé la commande `!help`.**",color=colour_embed)
             list_commands_msg = """
-            _Commandes destiné au propriétaire_:
-            :white_small_square: `!attribute` _**|**_ `!edit` _**|**_ `!remove`
-            :white_small_square: `!send` _**|**_ `!get`
-            
-            _Commandes destiné au Administration/Modération_:
-            :white_small_square: `!ban` _**|**_ `!unban` _**|**_ `!mute`
-            
-            _Commandes destiné au membre du serveur_:
-            :white_small_square: `!help` _**|**_ `!nickname` _**|**_ `!ping`
-            :white_small_square: `!myvocal`
-            """
+                    _Commandes destiné au propriétaire_:
+                    :white_small_square: `!attribute` _**|**_ `!edit` _**|**_ `!remove`
+                    :white_small_square: `!send` _**|**_ `!get`
+
+                    _Commandes destiné au Administration/Modération_:
+                    :white_small_square: `!ban` _**|**_ `!unban` _**|**_ `!mute`
+
+                    _Commandes destiné au membre du serveur_:
+                    :white_small_square: `!help` _**|**_ `!nickname` _**|**_ `!ping`
+                    :white_small_square: `!myvocal`
+                    """
             list_alias_msg = """
-            :white_small_square: `!mv` _(== `!myvocal`)_
-            """
+                    :white_small_square: `!mv` _(== `!myvocal`)_
+                    """
             help_message.add_field(name="**Liste des commandes disponible:**",value=list_commands_msg)
             help_message.add_field(name="**Liste des alias:**",value=list_alias_msg)
             help_message.set_footer(text=f"Pour plus d'info, tapez !help <commandes>. Votre serviteur {self.bot.user.name} vous affichera plus de detail",icon_url=self.bot.user.avatar_url)
@@ -122,7 +127,7 @@ class HelpCommand(commands.Cog):
             # Try if there are a wrong command or if is a good command
             try:
                 self.commands_info[args[0]][0]
-            except KeyError:
+            except (KeyError,IndexError):
                 return await ctx.send(embed=Embed(title="> ⚠ **Commande introuvable !**",description="Verifiez l'orthographe !",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
             else:
                 help_message.add_field(name="**Liste des commandes disponible:**",value=self.commands_info[args[0]][0])
@@ -133,10 +138,15 @@ class HelpCommand(commands.Cog):
             # Try if there are a wrong command or if is a good command
             try:
                 self.commands_info[args[0]][1][args[1]]
-            except KeyError:
+            except (KeyError,IndexError):
                 return await ctx.send(embed=Embed(title="> ⚠ **Commande introuvable !**",description="Verifiez l'orthographe !",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
             else:
                 help_message.add_field(name="**Information sur la commande:**",value=self.commands_info[args[0]][1][args[1]])
 
         help_message.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
         return await ctx.send(embed=help_message)
+
+    @commands.command(name="help")
+    async def help_command(self,ctx,*args):
+        await self.execute(ctx,args)
+

@@ -1,5 +1,9 @@
 from discord.ext import commands
 from discord import Colour,Embed,PermissionOverwrite,utils
+from discord.ext.commands import CommandError,Context
+from discord_slash import SlashContext,cog_ext
+from discord_slash.error import SlashCommandError
+from discord_slash.utils.manage_commands import create_option
 
 
 def set_permissions():
@@ -16,12 +20,26 @@ def set_confidentiality(connect):
     return perms
 
 
+async def in_voice_check(ctx,args):
+    vocal_channel = ctx.author.voice
+    if vocal_channel is not None:
+        return True
+    raise SlashCommandError("Vous n'etes pas dans un salon vocal !")
+
+
+async def bitrate_vocal(ctx,kbps):
+    await ctx.author.voice.channel.set_permissions(ctx.author,overwrite=set_permissions())
+    await ctx.author.voice.channel.edit(bitrate=kbps*1000)
+
+
 class MyVocalCommand(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
+        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Les parametres de votre vocal à été changé ! Parametre modifié 👉 `{value}`"]
+        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text]]
         self.detail_edit_message = {"rename": lambda ctx,other: f"Votre salon vocal <#{ctx.author.voice.channel.id}> a bien été renommé en `" + " ".join(other) + "`","bitrate": lambda ctx,other: f"Votre salon vocal <#{ctx.author.voice.channel.id}> a bien été régler sur `{other}Kbps`","public": lambda ctx,other: f"La confidentialité de <#{ctx.author.voice.channel.id}> à étais mise sur publique","private": lambda ctx,other: f"La confidentialité de <#{ctx.author.voice.channel.id}> à étais mise sur privée"}
-        self.commands = {"rename": self.rename_vocal,"bitrate": self.bitrate_vocal,"public": self.public_vocal,"private": self.private_vocal}
+        self.subcommands = {"rename": self.rename_vocal,"bitrate": bitrate_vocal,"public": self.public_vocal,"private": self.private_vocal}
 
     async def check_if_joined_in_vocal(self,ctx):
         vocal_channel = ctx.author.voice
@@ -69,11 +87,36 @@ class MyVocalCommand(commands.Cog):
             await vocal_channel.set_permissions(everyone,overwrite=set_confidentiality(False))
 
     @commands.command(name="myvocal",aliases=["mv"])
-    @commands.after_invoke(send_modification)
-    async def vocal_command(self,ctx,*args):
-        option = args[0]
+    @commands.check(in_voice_check)
+    async def vocal_command(self,ctx,option,value):
         try:
-            await self.commands[str(option)](ctx,args)
+            await self.subcommands[option](ctx,value)
         except KeyError:
-            return await ctx.send(embed=Embed(title="> ⚠ **Commande introuvable !**",description="Verifiez l'orthographe !",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
+            raise CommandError("This option isn't exist !")
 
+    @commands.Cog.listener()
+    async def on_command_error(self,ctx: Context,error):
+        pass
+
+
+class MyVocalSlash(commands.Cog):
+
+    def __init__(self,bot):
+        self.bot = bot
+        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Les parametres de votre vocal à été changé ! Parametre modifié 👉 `{value}`"]
+        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text]]
+
+    @cog_ext.cog_subcommand(base="myvocal",base_description="Permet de modifié plusieurs parametre de votre salon",
+                            name="bitrate",description="Permet de modifié le bitrate (En Kbps) votre salon vocal",
+                            options=[create_option(name="kbps",description="Specifié la valeurs en Kbps",option_type=4,required=True)])
+    async def myvocal_bitrate(self,ctx: SlashContext,kbps: int): return await bitrate_vocal(ctx,kbps)
+
+    @myvocal_bitrate.add_check
+    async def myvocal_bitrate_check(self,ctx: SlashContext,kbps: int):
+        vocal_channel = ctx.author.voice
+        if vocal_channel is not None:
+            return True
+        raise SlashCommandError("Vous n'etes pas dans un salon vocal !")
+
+    @myvocal_bitrate.error
+    async def myvocal_bitrate_error(self,ctx: SlashContext,error): return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=error)
