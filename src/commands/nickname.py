@@ -6,55 +6,54 @@ from discord_slash.error import SlashCommandError
 from discord_slash.utils.manage_commands import create_option
 from discord_slash.utils.manage_components import create_actionrow,create_button,wait_for_component
 
-accept_letter = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","[","]","{","}","|","(",")","+","=","°","^","~","&",":",";","/",".",",","!","?","*","%","ù","é","è","à","$","¨"," ","1","2","3","4","5","6","7","8","9","0"]
 
+class Nickname(object):
+    accept_letter = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","[","]","{","}","|","(",")","+","=","°","^","~","&",":",";","/",".",",","!","?","*","%","ù","é","è","à","$","¨"," ","1","2","3","4","5","6","7","8","9","0"]
+    success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Votre pseudo a été changé par `{value}`"]
 
-async def execute(self,ctx,nickname,action=None):
-    """ execute() -> It allow to execute the same code in a simple command and in slash command. """
-    # Check letter per letter.
-    for letter in nickname:
-        # Have wrong character.
-        if str(letter) not in accept_letter:
-            raise SlashCommandError("The characters specified is not available !") if isinstance(ctx,SlashContext) else CommandError("The characters specified is not available !")
-    try:
-        await ctx.author.edit(nick=nickname)
-    except Forbidden:
-        pass
-    else:
-        if isinstance(ctx,SlashContext):
-            return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=str(nickname),action=[action]),action
-        return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=str(nickname))
-
-
-class NicknameCommand(commands.Cog):
-    """ NicknameSlash() -> Represent a classic command which edit a nickname.
-                ex: !nickname <new pseudo> """
-    def __init__(self,bot):
+    def __init__(self,obj,bot):
+        self.obj = obj
         self.bot = bot
-        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Votre pseudo a été changé par `{value}`"]
-        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text],["Votre pseudo doit contenir:","`" + "".join(accept_letter) + "`"]]
+        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text],["Votre pseudo doit contenir:","`" + "".join(self.accept_letter) + "`"]]
+
+    async def execute(self,ctx,nickname,action=None):
+        """ execute() -> It allow to execute the same code in a simple command and in slash command. """
+        for letter in nickname:
+            # Have wrong character.
+            if str(letter) not in self.accept_letter:
+                raise SlashCommandError("The characters specified is not available !") if isinstance(ctx,SlashContext) else CommandError("The characters specified is not available !")
+        try:
+            await ctx.author.edit(nick=nickname)
+        except Forbidden:
+            pass
+        else:
+            return (await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=str(nickname),action=[action]),action) if isinstance(ctx,SlashContext) else await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=str(nickname))
+
+
+class NicknameCommand(Nickname,commands.Cog):
+    def __init__(self,bot):
+        Nickname.__init__(self,self,bot)
+        self.bot = bot
 
     @commands.command(name="nickname",aliases=["nick","nn"])
-    async def nickname_command(self,ctx: Context,new_nickname: str): return await execute(self,ctx,new_nickname)
+    async def nickname_command(self,ctx: Context,new_nickname: str): return await self.execute(ctx,new_nickname)
 
-    @commands.Cog.listener()
-    async def on_command_error(self,ctx: Context,error): return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=error)
+    @nickname_command.error
+    async def nickname_error(self,ctx: Context,error): return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=error)
 
 
-class NicknameSlash(commands.Cog):
-    """ NicknameSlash() -> Represent a slash command which edit a nickname.
-            ex: /nickname <new pseudo> """
+class NicknameSlash(Nickname,commands.Cog):
+    nickname_command_options = [create_option(name="new_nickname",description="Specifié le nouveau pseudo",option_type=3,required=True)]
+
     def __init__(self,bot):
+        Nickname.__init__(self,self,bot)
         self.bot = bot
-        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Votre pseudo a été changé par `{value}`"]
-        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text],["Votre pseudo doit contenir:","`" + "".join(accept_letter) + "`"]]
         self.data = {}
 
-    @cog_ext.cog_slash(name="nickname",description="Permet de changé votre pseudo dans ce serveur Discord.",
-                       options=[create_option(name="new_nickname",description="Specifié le nouveau pseudo",option_type=3,required=True)])
+    @cog_ext.cog_slash(name="nickname",description="Permet de changé votre pseudo dans ce serveur Discord.",options=nickname_command_options)
     async def nickname(self,ctx: SlashContext,new_nickname: str):
         # Msg nickname edited successful + "🤭 Une faute ?" Button
-        msg,wrong_nickname_action = await execute(self,ctx,nickname=new_nickname,action=create_actionrow(create_button(style=ButtonStyle.red,label="Une faute ?",emoji="🤭")))
+        msg,wrong_nickname_action = await self.execute(ctx,nickname=new_nickname,action=create_actionrow(create_button(style=ButtonStyle.red,label="Une faute ?",emoji="🤭")))
         # Wait pressed "🤭 Une faute ?" Buttton
         wrong_button: ComponentContext = await wait_for_component(self.bot,components=wrong_nickname_action)
         # Msg for "🤭 Une faute ?" Button
@@ -103,7 +102,7 @@ class NicknameSlash(commands.Cog):
                     # Check letter per letter.
                     for letter in nickname:
                         # Have wrong character.
-                        if str(letter) not in accept_letter:
+                        if str(letter) not in self.accept_letter:
                             self.data[str(message.author.id)] = [False,False]
                             raise SlashCommandError("The characters specified is not available !")
                     self.data[str(message.author.id)] = [False,False]

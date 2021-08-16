@@ -19,11 +19,11 @@ import os
 import json
 import datetime
 
+from googletrans import Translator
 from discord import Embed,Intents,Message
 from discord.ext import commands
 from discord.ext.commands import Context
 from discord_slash import SlashCommand,SlashContext
-from googletrans import Translator
 
 from src.commands.ban import BanCommand
 from src.commands.help import HelpCommand
@@ -102,7 +102,7 @@ class Bot(commands.Bot):
             msg.add_field(name=error_msg[0][0],value=error_msg[0][1](error))
             try:
                 msg.add_field(name=error_msg[1][0],value=error_msg[1][1],inline=False)
-            except KeyError:
+            except (KeyError,IndexError):
                 pass
             if isinstance(ctx,SlashContext) or isinstance(ctx,Message):
                 msg.set_footer(text=self.error_footer[0],icon_url=self.user.avatar_url)
@@ -119,7 +119,7 @@ class Bot(commands.Bot):
         all_slashes = [NicknameSlash(self),MyVocalSlash(self)]
         for slash in all_slashes:
             self.slash.get_cog_commands(slash)
-        self.add_cog(all_slashes[0])
+            self.add_cog(slash)
         all_commands = [NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)

@@ -1,122 +1,98 @@
 from discord.ext import commands
-from discord import Colour,Embed,PermissionOverwrite,utils
-from discord.ext.commands import CommandError,Context
-from discord_slash import SlashContext,cog_ext
-from discord_slash.error import SlashCommandError
+from discord import PermissionOverwrite
+from discord.ext.commands import CheckFailure,CommandError
+from discord_slash import SlashContext,cog_ext,error
 from discord_slash.utils.manage_commands import create_option
 
 
-def set_permissions():
-    perms = PermissionOverwrite()
-    perms.manage_channels = True
-    perms.manage_roles = True
-    perms.connect = True
-    return perms
+class MyVocal(object):
+    success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Les parametres de votre vocal à été changé ! Parametre modifié 👉 `{value}`"]
 
-
-def set_confidentiality(connect):
-    perms = PermissionOverwrite()
-    perms.connect = connect
-    return perms
-
-
-async def in_voice_check(ctx,args):
-    vocal_channel = ctx.author.voice
-    if vocal_channel is not None:
-        return True
-    raise SlashCommandError("Vous n'etes pas dans un salon vocal !")
-
-
-async def bitrate_vocal(ctx,kbps):
-    await ctx.author.voice.channel.set_permissions(ctx.author,overwrite=set_permissions())
-    await ctx.author.voice.channel.edit(bitrate=kbps*1000)
-
-
-class MyVocalCommand(commands.Cog):
-
-    def __init__(self,bot):
+    def __init__(self,obj,bot):
+        self.obj = obj
         self.bot = bot
-        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Les parametres de votre vocal à été changé ! Parametre modifié 👉 `{value}`"]
-        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text]]
-        self.detail_edit_message = {"rename": lambda ctx,other: f"Votre salon vocal <#{ctx.author.voice.channel.id}> a bien été renommé en `" + " ".join(other) + "`","bitrate": lambda ctx,other: f"Votre salon vocal <#{ctx.author.voice.channel.id}> a bien été régler sur `{other}Kbps`","public": lambda ctx,other: f"La confidentialité de <#{ctx.author.voice.channel.id}> à étais mise sur publique","private": lambda ctx,other: f"La confidentialité de <#{ctx.author.voice.channel.id}> à étais mise sur privée"}
-        self.subcommands = {"rename": self.rename_vocal,"bitrate": bitrate_vocal,"public": self.public_vocal,"private": self.private_vocal}
+        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.bot.translator.translate(src="en",dest="fr",text=str(_error)).text]]
 
-    async def check_if_joined_in_vocal(self,ctx):
-        vocal_channel = ctx.author.voice
-        if vocal_channel is not None:
-            vocal_channel = ctx.author.voice.channel
-            if vocal_channel.id not in [int(self.bot.guilds_data[str(ctx.guild.id)]["vocals_ID"]["create_vocal"])]:
-                await vocal_channel.set_permissions(ctx.author,overwrite=set_permissions())
-                return True,vocal_channel
-        await ctx.send(embed=Embed(title="> ⚠ **Vous n'etes pas dans un salon !**",description="Vous ne pouvez executé cette commande car vous n'avez pas <#868456252685045760>",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url).set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url))
-        return False,None
+    def set_permissions(self):
+        perms = PermissionOverwrite()
+        perms.manage_channels = True
+        perms.manage_roles = True
+        perms.connect = True
+        return perms
 
-    async def send_modification(self,*args):
-        ctx = args[0]
-        try:
-            command,option,*other = str(ctx.message.content).split(" ")
-        except ValueError:
-            command,option = str(ctx.message.content).split(" ")
-            other = None
-        send_modification_message = Embed(colour=Colour.from_rgb(52,255,52))
-        send_modification_message.add_field(name=f"Changement effectué avec **✅ succès** !",value=self.detail_edit_message[option](ctx,other))
-        send_modification_message.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
-        send_modification_message.set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=send_modification_message)
+    def set_confidentiality(self,connect):
+        perms = PermissionOverwrite()
+        perms.connect = connect
+        return perms
 
-    async def rename_vocal(self,ctx,args):
-        in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
-        if in_vocal:
-            await vocal_channel.edit(name=args[1])
+    async def bitrate_vocal(self,ctx,kbps): return await ctx.author.voice.channel.set_permissions(ctx.author,overwrite=self.set_permissions()),await ctx.author.voice.channel.edit(bitrate=kbps*1000)
 
-    async def bitrate_vocal(self,ctx,args):
-        in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
-        if in_vocal:
-            await vocal_channel.edit(bitrate=int(args[1])*1000)
+    async def rename_vocal(self,ctx,name): return await ctx.author.voice.channel.set_permissions(ctx.author,overwrite=self.set_permissions()),await ctx.author.voice.channel.edit(name=name)
 
-    async def public_vocal(self,ctx,args):
-        in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
-        if in_vocal:
-            everyone = utils.get(ctx.author.guild.roles,id=self.bot.guilds_data[str(ctx.author.guild.id)]["roles"]["🌐"])
-            await vocal_channel.set_permissions(everyone,overwrite=set_confidentiality(True))
+    async def error_vocal(self,ctx,_error): return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.obj.error_msg,error="You are not in vocal !\n You need to create or join a vocal.") if isinstance(_error,error.CheckFailure) or isinstance(_error,CheckFailure) else await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=_error)
 
-    async def private_vocal(self,ctx,args):
-        in_vocal,vocal_channel = await self.check_if_joined_in_vocal(ctx)
-        if in_vocal:
-            everyone = utils.get(ctx.author.guild.roles,id=self.bot.guilds_data[str(ctx.author.guild.id)]["roles"]["🌐"])
-            await vocal_channel.set_permissions(everyone,overwrite=set_confidentiality(False))
+    async def public_vocal(self,ctx): return await ctx.author.voice.channel.set_permissions(ctx.author.roles[0],overwrite=self.set_confidentiality(True))
+
+    async def private_vocal(self,ctx): return await ctx.author.voice.channel.set_permissions(ctx.author.roles[0],overwrite=self.set_confidentiality(False))
+
+
+class MyVocalCommand(MyVocal,commands.Cog):
+    def __init__(self,bot):
+        MyVocal.__init__(self,self,bot)
+        self.bot = bot
+        self.subcommands = {"rename": self.rename_vocal,"bitrate": self.bitrate_vocal,"public": self.public_vocal,"private": self.private_vocal}
 
     @commands.command(name="myvocal",aliases=["mv"])
-    @commands.check(in_voice_check)
-    async def vocal_command(self,ctx,option,value):
+    async def vocal_command(self,ctx,option: str,value: str=None):
         try:
-            await self.subcommands[option](ctx,value)
+            self.subcommands[option]
         except KeyError:
             raise CommandError("This option isn't exist !")
+        else:
+            if value is not None:
+                await self.subcommands[option](ctx,value)
+                return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=value)
+            await self.subcommands[option](ctx)
+            return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=f"Confidentialité: {option}")
 
-    @commands.Cog.listener()
-    async def on_command_error(self,ctx: Context,error):
-        pass
+    @vocal_command.add_check
+    async def vocal_command_check(*args): return True if args[0].author.voice is not None else False
+
+    @vocal_command.error
+    async def vocal_command_error(self,ctx,_error): await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=_error) if isinstance(ctx,error.CheckFailure) or isinstance(ctx,CheckFailure) else await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error="You are not in a vocal channel !\nYou need to create or join a vocal channel.")
 
 
-class MyVocalSlash(commands.Cog):
+class MyVocalSlash(MyVocal,commands.Cog):
+    base_command_info = ["myvocal","Permet de modifié plusieurs parametre de votre salon"]
+    bitrate_subcommand_option = [create_option(name="kbps",description="Specifié la valeurs en Kbps",option_type=4,required=True)]
+    rename_subcommand_option = [create_option(name="nom",description="Specifié votre nouveau nom de votre salon vocal",option_type=3,required=True)]
+    success_msg_details = {"bitrate": lambda kbps: f"bitrate: {kbps} Kbps","rename": lambda nom: f"nom: {nom}","public": "Confidentialité: publique","private": f"Confidentialité: privée"}
 
     def __init__(self,bot):
+        MyVocal.__init__(self,self,bot)
         self.bot = bot
-        self.success_msg = ["Changement effectué avec :white_check_mark: succès !",lambda value: f"Les parametres de votre vocal à été changé ! Parametre modifié 👉 `{value}`"]
-        self.error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=str(error)).text]]
 
-    @cog_ext.cog_subcommand(base="myvocal",base_description="Permet de modifié plusieurs parametre de votre salon",
-                            name="bitrate",description="Permet de modifié le bitrate (En Kbps) votre salon vocal",
-                            options=[create_option(name="kbps",description="Specifié la valeurs en Kbps",option_type=4,required=True)])
-    async def myvocal_bitrate(self,ctx: SlashContext,kbps: int): return await bitrate_vocal(ctx,kbps)
+    async def execute(self,ctx,func,value=None):
+        if value is not None:
+            await func(ctx,value)
+            return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=self.success_msg_details[ctx.subcommand_name](value))
+        await func(ctx)
+        return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,value=self.success_msg_details[ctx.subcommand_name])
+
+    @cog_ext.cog_subcommand(base=base_command_info[0],name="bitrate",base_desc=base_command_info[1],description="Permet de modifié le bitrate (En Kbps) votre salon vocal",options=bitrate_subcommand_option)
+    async def myvocal_bitrate(self,ctx: SlashContext,kbps: int): return await self.execute(ctx,self.bitrate_vocal,value=kbps)
+
+    @cog_ext.cog_subcommand(base=base_command_info[0],name="rename",base_desc=base_command_info[1],description="Permet de modifié le nom de votre salon vocal",options=rename_subcommand_option)
+    async def myvocal_rename(self,ctx: SlashContext,nom: str): return await self.execute(ctx,self.rename_vocal,value=nom)
+
+    @cog_ext.cog_subcommand(base=base_command_info[0],name="public",base_desc=base_command_info[1],description="Permet de rendre votre vocal en publique")
+    async def myvocal_public(self,ctx: SlashContext): return await self.execute(ctx,self.public_vocal)
+
+    @cog_ext.cog_subcommand(base=base_command_info[0],name="private",base_desc=base_command_info[1],description="Permet de rendre votre vocal en privée")
+    async def myvocal_private(self,ctx: SlashContext): return await self.execute(ctx,self.private_vocal)
 
     @myvocal_bitrate.add_check
-    async def myvocal_bitrate_check(self,ctx: SlashContext,kbps: int):
-        vocal_channel = ctx.author.voice
-        if vocal_channel is not None:
-            return True
-        raise SlashCommandError("Vous n'etes pas dans un salon vocal !")
+    async def myvocal_check(*args): return True if args[0].author.voice is not None else False
 
-    @myvocal_bitrate.error
-    async def myvocal_bitrate_error(self,ctx: SlashContext,error): return await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=error)
+    @commands.Cog.listener()
+    async def on_slash_command_error(self,ctx,_error): await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error=_error) if isinstance(ctx,error.CheckFailure) or isinstance(ctx,CheckFailure) else await self.bot.send_message_after_invoke(ctx,self.success_msg,self.error_msg,error="You are not in a vocal channel !\nYou need to create or join a vocal channel.")
