@@ -6,7 +6,6 @@ from discord import Colour,Embed,utils
 
 
 class BanCommand(commands.Cog):
-
     def __init__(self,bot):
         self.bot = bot
         self.user_info_path = os.path.join(f"{os.getcwd()}/res/","user_data.json")
@@ -30,11 +29,20 @@ class BanCommand(commands.Cog):
         if perm_check == "pass":
             member = utils.get(ctx.guild.members,id=int(member_id))
             self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["IsBanned"] = True
-            self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Why"] = str(why)
-            self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] = str(ctx.author.name)
+            if self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Why"] is not None:
+                self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Why"].append(why)
+            else:
+                self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Why"] = [why]
+            if self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] is not None:
+                self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhoAtBanned"].append(ctx.author.name)
+            else:
+                self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] = [ctx.author.name]
             if how_much_days == "def":
                 self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanInfo"]["Definitive"] = True
             else:
                 self.bot.users_data[str(ctx.guild.id)][member_id]["CriminalRecord"]["BanSystem"] = {"day_counter": 0,"how_much_days": how_much_days}
+                if self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"] is not None:
+                    self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"].append(how_much_days)
+                else:
+                    self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"] = [how_much_days]
             return await member.ban(reason=why)
-

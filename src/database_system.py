@@ -27,14 +27,14 @@ class DataBaseSystem(commands.Cog):
     async def on_member_join(self,member):
         """ on_member_join() -> Create database for the member who as been joined in the guild. """
         self.bot.guilds_data[str(member.guild.id)][str(member.id)] = self.bot.template_user
-        self.refresh_database("guilds_data.json")
+        self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_member_remove(self,member):
         """ on_member_remove() -> Create database for the member who as been removed in the guild. """
         if self.bot.users_data[str(member.guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"] is False:
             self.bot.guilds_data[str(member.guild.id)].pop(str(member.id))
-            self.refresh_database("guilds_data.json")
+            self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_member_ban(self,guild,user):

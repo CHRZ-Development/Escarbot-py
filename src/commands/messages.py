@@ -2,13 +2,14 @@ import os
 
 from discord import Colour,Embed
 from discord.ext import commands
+from discord_slash import ButtonStyle,SlashContext,cog_ext
+from discord_slash.utils.manage_components import create_actionrow,create_button
 
 
-class MessagesCommand(commands.Cog):
-    """ MessagesCommand() -> Represent the preset messages. """
-    def __init__(self,bot):
+class Messages(object):
+    def __init__(self,obj,bot):
+        self.obj = obj
         self.bot = bot
-        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     async def roles_message(self,ctx,colour):
@@ -34,15 +35,21 @@ class MessagesCommand(commands.Cog):
             await message.add_reaction(self.bot.guilds_data[guild_id]['roles_emoji_reaction'][emoji])
         self.refresh_database()
 
-    def rules_message(self):
-        pass
+    async def rules_message(self,ctx,args):
+        rules_msg = Embed(title="> 🧐 Avez-vous lu·e les règles ?",colour=Colour.from_rgb(0,255,0))
+        rules_msg.add_field(name="Si oui 👇",value="Appuyez sur le bouton `🚪 Entrez dans le serveur !`")
+        rules_msg.set_footer(text="❗ Lors de l'appui sur ce bouton, il vous permet d'accéder au serveur !")
+        rules_buttons = [create_button(style=ButtonStyle.green,label="Entrez dans le serveur !",emoji="🚪",custom_id="Rules_accepted")]
+        rules_action_row = create_actionrow(*rules_buttons)
+        return await ctx.send(embed=rules_msg,components=[rules_action_row])
 
     async def custom_message(self,ctx,messages):
         await ctx.send(content=messages[0])
 
     async def embed_message(self,ctx,messages):
-        opt1,*tle = messages[0].split("=")
-        opt2,*color = messages[1].split("=")
+        set_author = messages[0]
+        opt1,*tle = messages[1].split("=")
+        opt2,*color = messages[2].split("=")
         if opt1 == "title":
             if opt2 in ["colour", "color"]:
                 r,g,b = str(color[0]).split(",")
@@ -53,14 +60,26 @@ class MessagesCommand(commands.Cog):
             custom_message = Embed()
         titles = [];details = []
         for n,title in enumerate(messages):
-            if int(n) in [2,4,6,8,10,12,14,16,18,20]:
+            if int(n) in [3,5,7,9,11,13,15,17,19,21]:
                 titles.append(title)
             else:
-                if int(n) >= 2:
+                if int(n) >= 3:
                     details.append(title)
         for n,part in enumerate(titles):
-            custom_message.add_field(name=titles[n],value=details[n])
+            custom_message.add_field(name=titles[n],value=details[n],inline=False)
+        if set_author == "serveur":
+            custom_message.set_author(name=ctx.guild.name,icon_url=ctx.guild.icon_url)
+        if set_author == "author":
+            custom_message.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
         await ctx.send(embed=custom_message)
+
+
+class MessagesCommand(Messages,commands.Cog):
+    """ MessagesCommand() -> Represent the preset messages. """
+    def __init__(self,bot):
+        Messages.__init__(self,self,bot)
+        self.bot = bot
+        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message,"rules_message": self.rules_message}
 
     @commands.command(name="send")
     @commands.is_owner()
@@ -68,3 +87,15 @@ class MessagesCommand(commands.Cog):
         await self.send_message_func[option](ctx,args)
         await ctx.message.delete()
 
+
+class MessagesSlash(Messages,commands.Cog):
+    def __init__(self,bot):
+        Messages.__init__(self,self,bot)
+        self.bot = bot
+        self.send_rules.add_check(self.send_rules_check)
+
+    @cog_ext.cog_subcommand(base="send",name="rules")
+    async def send_rules(self,ctx: SlashContext):
+        await self.rules_message(ctx,None)
+
+    async def send_rules_check(*args): return True if int(args[1].guild.owner_id) == int(args[1].author.id) else False

@@ -6,7 +6,6 @@ from discord.ext.commands import has_permissions
 
 
 class AutoMessagesSendSystem(commands.Cog):
-
     def __init__(self,bot):
         self.bot = bot
 
@@ -56,8 +55,7 @@ class AutoMessagesSendSystem(commands.Cog):
 
     async def welcome_message(self,member):
         text_channel = self.bot.get_channel(int(self.bot.guilds_data[str(member.guild.id)]["channels_ID"]["welcome_channel"]))
-        welcome_message = Embed(title="> **Nice, un nouveau !** 👋",colour=Colour.from_rgb(0,128,255))
-        welcome_message.add_field(name="Je te souhaite la bienvenue !",value=f"{member.mention}\nPrend un ☕ café et vient dans <#839042197629304853>, dit nous coucou ! 😄")
+        welcome_message = Embed(description=f"Je te souhaite la bienvenue {member.mention} ! Prend un ☕ café et vient dans <#839042197629304853>, dit nous coucou !",colour=Colour.from_rgb(0,128,255))
         welcome_message.set_author(name=member.name,icon_url=member.avatar_url)
         print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} est arrivée dans le serveur !")
         await text_channel.send(embed=welcome_message)
@@ -65,7 +63,7 @@ class AutoMessagesSendSystem(commands.Cog):
     async def create_vocal_message(self,member):
         text_channel = self.bot.get_channel(int(self.bot.guilds_data[str(member.guild.id)]["channels_ID"]["command_channel"]))
         create_vocal_message = Embed(title="> **Vous venez de crée un salon vocal !**",colour=Colour.from_rgb(96,96,96))
-        create_vocal_message.add_field(name=f"Vous avez droit désormais grâce à votre salon:",value="Commandes:\n:white_small_square: `!myvocal` _(alias `!mv`)_\n_Pour plus d'info sur les commandes, entrez `!help <commande>`_\n\n:white_small_square: Ecouté de la <#867173777485725706>\n_Pour plus d'info sur le Bot musique, entrez `.help`_")
+        create_vocal_message.add_field(name=f"Vous avez droit désormais grâce à votre salon:",value="Commandes:\n:white_small_square: `!myvocal` _(alias `!mv`)_\n:white_small_square: `/myvocal`\n_Pour plus d'info sur les commandes, entrez `!help <commande>`_\n\n:white_small_square: Ecouté de la <#867173777485725706>\n_Pour plus d'info sur le Bot musique, entrez `.help`_")
         create_vocal_message.set_author(name=member.name,icon_url=member.avatar_url)
         create_vocal_message.set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url)
         await text_channel.send(embed=create_vocal_message)
@@ -142,9 +140,17 @@ class AutoMessagesSendSystem(commands.Cog):
                         final_messages.append(Embed())
                         final_messages[0].add_field(name=f"Message posté le {msg.created_at.date()}",value=msg.content)
                         final_messages[0].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}.",icon_url=msg.guild.icon_url)
+                    filename = []
+                    for att in msg.attachments:
+                        filename.append(str(att.proxy_url))
                     # Send message
-                    for embd in final_messages:
+                    for n,embd in enumerate(final_messages):
                         embd.set_author(name=msg.author.name,icon_url=msg.author.avatar_url)
+                        try:
+                            if isinstance(filename[n],str):
+                                embd.set_image(url=filename[n])
+                        except IndexError:
+                            pass
                         await message.channel.send(embed=embd)
 
     async def check_user_booster(self,b: Member,a: Member):
@@ -182,7 +188,4 @@ class AutoMessagesSendSystem(commands.Cog):
                 await self.create_vocal_message(member)
 
     @commands.Cog.listener()
-    async def on_message(self,message):
-        await self.message_from_url_discord(message)
-
-
+    async def on_message(self,message): await self.message_from_url_discord(message)

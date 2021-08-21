@@ -2,6 +2,7 @@ import datetime
 
 from discord import utils
 from discord.ext import commands
+from discord_slash import ComponentContext
 
 
 class RolesSystem(commands.Cog):
@@ -25,6 +26,11 @@ class RolesSystem(commands.Cog):
 					return await self.edit_role("add",event.guild_id,self.bot.guilds_data[str(event.guild_id)]["roles"][str(event.emoji)],event.member)
 
 	@commands.Cog.listener()
+	async def on_component(self,ctx: ComponentContext):
+		if str(ctx.custom_id) == "Rules_accepted":
+			return await self.edit_role("add",ctx.guild_id,self.bot.guilds_data[str(ctx.guild_id)]["roles"]["✅"],ctx.author)
+
+	@commands.Cog.listener()
 	async def on_raw_reaction_remove(self,event):
 		# Get member who as remove a reaction
 		guild = utils.get(self.bot.guilds,id=event.guild_id)
@@ -42,7 +48,7 @@ class RolesSystem(commands.Cog):
 	@commands.Cog.listener()
 	async def on_message(self,message):
 		year,month,day = str(datetime.datetime.today().date()).split("-")
-		if int(month) - 1 < 10:
+		if int(month)-1 < 10:
 			m = f"0{int(month)}"
 		else:
 			m = month
@@ -56,7 +62,7 @@ class RolesSystem(commands.Cog):
 			except KeyError:
 				pass
 			else:
-				if 3000 < self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"] <= 5000:
+				if 3500 < self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"] < 5000:
 					await message.author.add_roles(role)
 				else:
 					await message.author.remove_roles(role)

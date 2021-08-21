@@ -20,21 +20,22 @@ import json
 import datetime
 
 from googletrans import Translator
-from discord import Embed,Intents,Message
+from discord import Colour,Embed,Intents,Message
 from discord.ext import commands
-from discord.ext.commands import Context
-from discord_slash import SlashCommand,SlashContext
+from discord.ext.commands import CommandNotFound,Context
+from discord_slash import ButtonStyle,ComponentContext,SlashCommand,SlashContext
+from discord_slash.utils.manage_components import create_actionrow,create_button,wait_for_component
 
 from src.commands.ban import BanCommand
 from src.commands.help import HelpCommand
 from src.commands.edit import EditCommand
-from src.commands.ping import PingCommand
+from src.commands.ping import (PingCommand,PingSlash)
 from src.commands.unban import UnBanCommand
-from src.commands.nickname import (NicknameCommand,NicknameSlash)
+from src.commands.nickname import (Nickname,NicknameCommand,NicknameSlash)
 from src.commands.myvocal import (MyVocalCommand,MyVocalSlash)
-from src.commands.userinfo import UserInfoCommand
-from src.commands.messages import MessagesCommand
-from src.commands.serverinfo import ServerInfoCommand
+from src.commands.userinfo import (UserInfoCommand,UserInfoSlash)
+from src.commands.messages import (MessagesCommand,MessagesSlash)
+from src.commands.serverinfo import (ServerInfoCommand,ServerInfoSlash)
 from src.commands.attributes import AttributesCommand
 from src.activities import Activities
 from src.roles_sytem import RolesSystem
@@ -62,7 +63,7 @@ def set_permissions() -> Intents:
     return perms
 
 
-class Bot(commands.Bot):
+class Bot(commands.Bot,):
     """ Bot() -> Represent a Bot discord """
     def __init__(self):
         commands.Bot.__init__(self,intents=set_permissions(),command_prefix="!",help_command=None)
@@ -76,7 +77,7 @@ class Bot(commands.Bot):
         self.error_footer = ["Escarbot n'a pas pu effectué votre demande !","Utilisé les nouvelles commandes slash ! Escarbot n'a pas pu effectué votre demande !"]
         # Template for database
         self.template = {"roles_can_attributes": [],"roles_emoji_reaction": {},"functions": {"stat": False,"verif_rules": True,"create_personal_vocal": False},"categories_ID": {"vocals_channel": 0},"vocals_ID": {"create_vocal": 0},"messages_ID": {"roles": 0,"rules": 0,"stat": 0,},"messages": {"welcome": [],"rules": {"authorized": [],"forbidden": [],"verif_rules": ["> Avez-vous pris connaisance des régles ?","Si oui, clické sur la reaction ci-dessous"]}},"roles": {},"roles_info": {}}
-        self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None,"Hour": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {"2021-06": 169,"2021-07": 48}}
+        self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None,"Hour": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {}}
         # Guilds settings
         guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
         with open(guilds_data_path) as f:
@@ -93,37 +94,47 @@ class Bot(commands.Bot):
         # Send successfully message embed
         if value is not None:
             msg.add_field(name=success_msg[0],value=success_msg[1](value))
-            if isinstance(ctx,SlashContext) or isinstance(ctx,Message):
-                msg.set_footer(text=self.success_footer[0],icon_url=self.user.avatar_url)
-            if isinstance(ctx,Context):
-                msg.set_footer(text=self.success_footer[1],icon_url=self.user.avatar_url)
+            msg.set_footer(text=self.success_footer[0],icon_url=self.user.avatar_url) if isinstance(ctx,SlashContext) or isinstance(ctx,Message) else msg.set_footer(text=self.success_footer[1],icon_url=self.user.avatar_url)
         # Send error message embed
         if error is not None:
             msg.add_field(name=error_msg[0][0],value=error_msg[0][1](error))
             try:
                 msg.add_field(name=error_msg[1][0],value=error_msg[1][1],inline=False)
-            except (KeyError,IndexError):
+            except IndexError:
                 pass
-            if isinstance(ctx,SlashContext) or isinstance(ctx,Message):
-                msg.set_footer(text=self.error_footer[0],icon_url=self.user.avatar_url)
-            if isinstance(ctx,Context):
-                msg.set_footer(text=self.error_footer[1],icon_url=self.user.avatar_url)
+            msg.set_footer(text=self.error_footer[0],icon_url=self.user.avatar_url) if isinstance(ctx,SlashContext) or isinstance(ctx,Message) else msg.set_footer(text=self.error_footer[1],icon_url=self.user.avatar_url)
         msg.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
         if isinstance(ctx,Message):
             return await ctx.channel.send(embed=msg)
-        if isinstance(ctx,SlashContext):
-            return await ctx.send(embed=msg,components=action)
-        return await ctx.send(embed=msg)
+        return await ctx.send(embed=msg,components=action) if action is not None else await ctx.send(embed=msg)
+
+    async def can_rename_after_invoke_command(self,cog,ctx,action):
+        create_msg = lambda name,value,author: Embed().add_field(name=name,value=value).set_author(name=author.name,icon_url=author.avatar_url)
+        # Wait pressed "🤭 Une faute ?" Buttton
+        wrong_button_interaction: ComponentContext = await wait_for_component(self,components=action,timeout=60)
+        cancel_button = create_actionrow(create_button(style=ButtonStyle.red,label="Tu ne veux plus le changé ?",emoji="🧐"))
+        # On pressed "🤭 Une faute ?" Button, send message
+        if wrong_button_interaction.author != ctx.author:
+            return await wrong_button_interaction.send(embed=create_msg("⚠ Utilisateur non autorisé","Vous n'etes pas autorisé d'appuie sur ce bouton !",wrong_button_interaction.author))
+        await wrong_button_interaction.send(embed=create_msg("Vous avez appuyé sur le bouton `Une faute ?`.","Entrez votre nouveau pseudo ou nom de vocal !",ctx.author),components=[cancel_button])
+        # Wait pressed "🧐 Tu ne veux plus le changé ?" Button
+        cog.data[str(ctx.author.id)] = [True,True]
+        cancel_button_interaction: ComponentContext = await wait_for_component(self,components=cancel_button,timeout=60)
+        if cog.data[str(ctx.author.id)][1]:
+            # On pressed "🧐 Tu ne veux plus le changé ?" Button, send message
+            await cancel_button_interaction.send(embed=create_msg("Vous avez appuyé sur le bouton `Tu ne veux plus le changé ?`.",f"Vous avez fermez la possibilité de changé votre pseudo du a une faute de frappe ou bien d'un mauvais pseudo.\nVous pouvez toujours executé la commande `/{ctx.command}` apres ca.",ctx.author).set_footer(text=self.success_footer[0],icon_url=self.user.avatar_url))
+        cog.data.pop(str(ctx.author.id))
 
     def add_all_cogs(self):
-        all_slashes = [NicknameSlash(self),MyVocalSlash(self)]
+        all_slashes = [NicknameSlash(self),MyVocalSlash(self),PingSlash(self),ServerInfoSlash(self),UserInfoSlash(self),MessagesSlash(self)]
+        self.add_cog(all_slashes[0])
+        self.add_cog(all_slashes[1])
         for slash in all_slashes:
             self.slash.get_cog_commands(slash)
-            self.add_cog(slash)
         all_commands = [NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
-        all_systems = [NotificationSystem(self),DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
+        all_systems = [DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
         for system in all_systems:
             self.add_cog(system)
 
@@ -135,3 +146,21 @@ class Bot(commands.Bot):
         print(f"🟢 Connecté sur: {len(self.guilds)} serveurs")
         print(f"==================================================")
         print(f"[{datetime.datetime.today().date()}] Je suis prêt ! 👌")
+
+    async def on_command_error(self,ctx,error):
+        if isinstance(error,CommandNotFound):
+            await ctx.send(embed=Embed(description=self.translator.translate(src="en",dest="fr",text=str(error)).text,colour=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
+
+    async def on_slash_command_error(self,ctx,error):
+        if ctx.name == "nickname":
+            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text],["Votre pseudo doit contenir:","`" + "".join(Nickname.accept_letter) + "`"]]
+            await self.send_message_after_invoke(ctx,[],error_msg,error=error)
+        if ctx.name == "myvocal":
+            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
+            await self.send_message_after_invoke(ctx,[],error_msg,error="You are not in vocal !\n You need to create or join a vocal.")
+
+    async def on_error(self,event_method,*args,**kwargs):
+        command,*other = str(args[0].content if isinstance(args[0],Context) else args[0].message.content).split(" ")
+        if command == "!nickname":
+            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text],["Votre pseudo doit contenir:","`" + "".join(Nickname.accept_letter) + "`"]]
+            await self.send_message_after_invoke(args[0],[],error_msg,error="The characters specified is not available !")
