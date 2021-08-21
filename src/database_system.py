@@ -1,6 +1,7 @@
 import os
 import datetime
 
+from discord import DMChannel
 from discord.ext import commands
 from discord.ext.tasks import loop
 
@@ -60,16 +61,18 @@ class DataBaseSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self,message):
-        year,month,day = str(datetime.datetime.today().date()).split("-")
-        try:
-            self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-        except KeyError:
-            try:
-                self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
-                self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-            except KeyError:
-                pass
-        self.refresh_database("users_data.json")
+        if isinstance(message.channel,DMChannel) is False:
+            if message.author.bot is False:
+                year,month,day = str(datetime.datetime.today().date()).split("-")
+                try:
+                    self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+                except KeyError:
+                    try:
+                        self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
+                        self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
+                    except KeyError:
+                        pass
+                self.refresh_database("users_data.json")
 
     @loop(hours=24)
     async def check_unban(self):

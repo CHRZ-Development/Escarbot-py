@@ -1,6 +1,6 @@
 import datetime
 
-from discord import utils
+from discord import DMChannel,utils
 from discord.ext import commands
 from discord_slash import ComponentContext
 
@@ -28,7 +28,8 @@ class RolesSystem(commands.Cog):
 	@commands.Cog.listener()
 	async def on_component(self,ctx: ComponentContext):
 		if str(ctx.custom_id) == "Rules_accepted":
-			return await self.edit_role("add",ctx.guild_id,self.bot.guilds_data[str(ctx.guild_id)]["roles"]["✅"],ctx.author)
+			await self.edit_role("add",ctx.guild_id,self.bot.guilds_data[str(ctx.guild_id)]["roles"]["✅"],ctx.author)
+			await ctx.send(content="Vous pouvez maintenant voir l'intégralité du serveur !",hidden=True)
 
 	@commands.Cog.listener()
 	async def on_raw_reaction_remove(self,event):
@@ -47,23 +48,25 @@ class RolesSystem(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self,message):
-		year,month,day = str(datetime.datetime.today().date()).split("-")
-		if int(month)-1 < 10:
-			m = f"0{int(month)}"
-		else:
-			m = month
-		try:
-			self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"]
-		except KeyError:
-			pass
-		else:
-			try:
-				role = utils.get(message.guild.roles,id=int(self.bot.guilds_data[str(message.guild.id)]["roles"]["📅"]))
-			except KeyError:
-				pass
-			else:
-				if 3500 < self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"] < 5000:
-					await message.author.add_roles(role)
+		if isinstance(message.channel,DMChannel) is False:
+			if message.author.bot is False:
+				year,month,day = str(datetime.datetime.today().date()).split("-")
+				if int(month)-1 < 10:
+					m = f"0{int(month)}"
 				else:
-					await message.author.remove_roles(role)
+					m = month
+				try:
+					self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"]
+				except KeyError:
+					pass
+				else:
+					try:
+						role = utils.get(message.guild.roles,id=int(self.bot.guilds_data[str(message.guild.id)]["roles"]["📅"]))
+					except KeyError:
+						pass
+					else:
+						if 3500 < self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{int(m)-1}"] < 5000:
+							await message.author.add_roles(role)
+						else:
+							await message.author.remove_roles(role)
 

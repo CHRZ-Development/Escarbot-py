@@ -2,6 +2,7 @@ import os
 
 from discord import Colour,Embed
 from discord.ext import commands
+from discord.ext.commands import Context
 from discord_slash import ButtonStyle,SlashContext,cog_ext
 from discord_slash.utils.manage_components import create_actionrow,create_button
 
@@ -43,6 +44,15 @@ class Messages(object):
         rules_action_row = create_actionrow(*rules_buttons)
         return await ctx.send(embed=rules_msg,components=[rules_action_row])
 
+    async def ticket_message(self,ctx,args):
+        ticket_msg = Embed(colour=Colour.from_rgb(128,128,128))
+        ticket_msg.add_field(name="> Un problème ?",value="Appuyez sur le bouton `✉ Crée un ticket.`")
+        ticket_msg.set_author(name=self.bot.user.name,icon_url=self.bot.user.avatar_url)
+        ticket_msg.set_footer(text="❗ Lors de l'appui sur ce bouton, votre serviteur Escarbot vous mettra en lien avec un membre du staff apres une confirmation du ticket.")
+        ticket_button = [create_button(style=ButtonStyle.grey,label="Crée un ticket.",emoji="✉",custom_id="Ticket")]
+        ticket_action_row = create_actionrow(*ticket_button)
+        return await ctx.send(embed=ticket_msg,components=[ticket_action_row])
+
     async def custom_message(self,ctx,messages):
         await ctx.send(content=messages[0])
 
@@ -79,7 +89,7 @@ class MessagesCommand(Messages,commands.Cog):
     def __init__(self,bot):
         Messages.__init__(self,self,bot)
         self.bot = bot
-        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message,"rules_message": self.rules_message}
+        self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message,"rules_message": self.rules_message,"ticket_message": self.ticket_message}
 
     @commands.command(name="send")
     @commands.is_owner()
