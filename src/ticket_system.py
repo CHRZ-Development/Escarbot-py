@@ -11,6 +11,7 @@ class TicketSystem(commands.Cog):
     def __init__(self,bot):
         self.refresh_database = lambda file: self.bot.file.write(self.bot.guilds_data if file == "guilds_data.json" else self.bot.users_data,file,f"{os.getcwd()}/res/")
         self.id_ticket_open = {}
+        # Get number of ticket sending for id
         with open(os.path.join(f"{os.getcwd()}/res/","all_tickets_number.txt")) as f:
             self.id_ticket = int(f.read())
         self.bot = bot
@@ -22,7 +23,7 @@ class TicketSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_component(self,ctx: ComponentContext):
-        # If a user
+        # If a user at click the button
         if str(ctx.custom_id) == "Ticket":
             self.id_ticket += 1
             ticket_msg = Embed(title="> ✉ Vous avez ouvert un ticket.",description=f"Guild={ctx.guild_id}\nID Ticket={self.id_ticket}")
@@ -45,7 +46,7 @@ class TicketSystem(commands.Cog):
             with open(os.path.join(f"{os.getcwd()}/res/","all_tickets_number.txt"),"w") as f:
                 f.write(str(self.id_ticket))
             return await ctx.send(content=msg,hidden=True)
-
+        # If a user at click the button in dm
         if ctx.custom_id == "Ticket_confirmed":
             # Get ticket id and guild id
             guild_info,ticket_info = str(ctx.origin_message.embeds[0].description).split("\n")
@@ -55,24 +56,35 @@ class TicketSystem(commands.Cog):
             # Update database
             self.bot.users_data[str(guild.id)][str(ctx.author.id)]["tickets"][str(ctx.origin_message.channel.id)]["id"] = int(ticket_id)
             self.bot.users_data[str(guild.id)][str(ctx.author.id)]["tickets"]["message_id"] = int(ctx.origin_message.id)
+            # Delete the button
             await ctx.origin_message.edit(components=None)
+            # If a ticket is active
             if self.bot.users_data[str(guild.id)][str(ctx.author.id)]["tickets"][str(ctx.channel.id)]["enabled"]:
                 category = None
+                # Search if the category is already exist
                 for catgory in guild.categories:
                     if str(catgory.name) == "✉ Tickets":
                         category = catgory
                         break
+                # If not exist ✉ Tickets category, create the category
                 if category is None:
                     def set_permissions(bool_: bool):
                         perms = PermissionOverwrite()
                         perms.view_channel = bool_
                         return perms
                     category = await guild.create_category(name="✉ Tickets",position=len(guild.categories))
+                    # Owner can view the category
                     await category.set_permissions(guild.roles[0],overwrite=set_permissions(False))
+                # Message confirmed ticket
                 confirmed_ticket_msg = Embed()
                 confirmed_ticket_msg.set_author(name=guild.name,icon_url=guild.icon_url)
                 confirmed_ticket_msg.add_field(name="Votre demande à était prise en compte !",value="Attendez que quelqu'un vous répond !")
-                text_channel = await guild.create_text_channel(name=f"{ctx.author.id} Ticket",category=category)
+                # Search if a text channel is already exist
+                text_channel = utils.get(guild.channels,name=f"{ctx.author.id}-ticket")
+                # If not exist text channel, create a text channel
+                if text_channel is None:
+                    text_channel = await guild.create_text_channel(name=f"{ctx.author.id}-ticket",category=category)
+                # Update database
                 self.bot.users_data[str(guild.id)][str(ctx.author.id)]["tickets"][str(ctx.channel.id)]["text_channel"] = text_channel.id
                 self.bot.users_data[str(guild.id)][str(ctx.author.id)]["tickets"][str(ctx.channel.id)]["confirmed"] = True
                 self.refresh_database("users_data.json")
@@ -81,28 +93,30 @@ class TicketSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self,message):
         if message.author.bot is False:
+            if isinstance(message.channel,TextChannel):
+                if str(message.channel.category.name) == "✉ Tickets":
+                    # Get member id thanks to the name of Text Channel
+                    id_,*name_channel = str(message.channel.name).split("-")
+                    member = utils.get(message.guild.members,id=int(id_))
+                    # Send DM
+                    return await member.send(content=message.content)
+
             for guild in self.bot.guilds:
-                # If in private message channel
                 if isinstance(message.channel,DMChannel):
                     try:
                         msg_info = await message.channel.fetch_message(id=self.bot.users_data[str(guild.id)][str(message.author.id)]["tickets"]["message_id"])
-                        # text_channel = guild.get_channel(self.bot.users_data[str(guild.id)][str(message.author.id)]["tickets"][str(message.channel.id)]["text_channel"])
                     except KeyError:
                         pass
                     else:
+                        # Get ticket id
                         guild_info,ticket_info = str(msg_info.embeds[0].description).split("\n")
                         ticket_param,ticket_id = ticket_info.split("=")
                         if int(self.bot.users_data[str(guild.id)][str(message.author.id)]["tickets"][str(message.channel.id)]["id"]) == int(ticket_id):
                             if self.bot.users_data[str(guild.id)][str(message.author.id)]["tickets"][str(message.channel.id)]["confirmed"]:
                                 text_channel = guild.get_channel(self.bot.users_data[str(guild.id)][str(message.author.id)]["tickets"][str(message.channel.id)]["text_channel"])
+                                # Send message dm channel to text channel
                                 if text_channel is not None:
                                     msg = Embed()
                                     msg.set_author(name=message.author.name,icon_url=message.author.avatar_url)
                                     msg.add_field(name=f"Envoyé le {datetime.datetime.today().date()} à {datetime.datetime.today().time()}",value=message.content)
                                     return await text_channel.send(embed=msg)
-                # If in text channel
-                if isinstance(message.channel,TextChannel):
-                    if str(message.channel.category.name) == "✉ Tickets":
-                        id_,*name_channel = str(message.channel.name).split("-")
-                        member = utils.get(message.guild.members,id=int(id_))
-                        return await member.send(content=message.content)
