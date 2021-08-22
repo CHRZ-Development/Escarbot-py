@@ -3,8 +3,8 @@ _French bot_
 Serveur Discord: https://discord.gg/yEvBg8CPaM
 
 ## Sommaires
-* [Information.](#information.)
-* [Technologies.](#technologies.)
+* [Information.](#Information.)
+* [Technologies.](#Technologies.)
 
 ### Information.
 📦 Ce projet à été créé le dimanche ‎27 ‎juin ‎2021📅, à ‏‎19:32🕞
