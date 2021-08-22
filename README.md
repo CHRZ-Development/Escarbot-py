@@ -2,7 +2,7 @@
 _French bot_
 Serveur Discord: https://discord.gg/yEvBg8CPaM
 
-## Table of contents
+## Sommaires
 * [Information.](#information.)
 * [Technologies.](#technologies.)
 
