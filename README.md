@@ -4,7 +4,7 @@ French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 
 ## Sommaires.
 * [Information.](#information)
-* [Technologies.](#technologies)
+* [Librairies.](#technologies)
 
 ### Information.
 📦 Ce projet à été créé le ‎dimanche ‎27 ‎juin ‎2021📅, à ‏‎19:32🕞.
@@ -14,12 +14,12 @@ French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 * ✅ Vous pouvez le testé ! _(N'est pas au point ! Donne moi ton retour sur mon serv)_:
   *  https://discord.com/api/oauth2/authorize?client_id=858796291428974612&permissions=8&scope=applications.commands%20bot
 
-### Technologies.
-Le projet à étais crée avec:
-* `discord.py`
-* `discord_slash`
-* `googletrans`
-* `TwitchAPI`
-* `googleoauth`
-* `googleclientapi`
+### Librairies.
+**Le projet à étais crée avec:**
+* `discord.py` version: `1.7.3`
+* `discord_slash` version: `3.0.1`
+* `googletrans` version: `3.1.0a0`
+* `TwitchAPI` version: `2.3.2`
+* `googleoauth` version: `1.32.0`
+* `googleclientapi` version: `2.10.0`
 
