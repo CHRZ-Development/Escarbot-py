@@ -4,7 +4,7 @@ French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 
 ## Sommaires.
 * [Information.](#information)
-* [Librairies.](#technologies)
+* [Librairies.](#librairies)
 
 ### Information.
 📦 Ce projet à été créé le ‎dimanche ‎27 ‎juin ‎2021📅, à ‏‎19:32🕞.
