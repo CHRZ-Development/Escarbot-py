@@ -1,4 +1,4 @@
-![Escarbot Icon](https://eapi.pcloud.com/getpubthumb?code=XZFvd0ZSksv7cKIy7YWrlrniRMTEb4Mxyj7&linkpassword=undefined&size=1052x1052&crop=0&type=auto)
+![Escarbot Icon](https://eapi.pcloud.com/getpubthumb?code=XZRid0ZTDpXjJtGtXHb2MjxJB6w57vMB4V0&linkpassword=undefined&size=1078x190&crop=0&type=auto)
 # Escarbot
 _French bot_
 Serveur Discord: https://discord.gg/yEvBg8CPaM
