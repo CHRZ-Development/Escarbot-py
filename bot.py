@@ -46,7 +46,7 @@ from src.database_system import DataBaseSystem
 from src.notif_system import NotificationSystem
 from src.vocal_salon_system import VocalSalonSystem
 from src.auto_messages_send_system import AutoMessagesSendSystem
-from ticket_system import TicketSystem
+from src.ticket_system import TicketSystem
 
 
 def set_permissions() -> Intents:
@@ -87,6 +87,7 @@ class Bot(commands.Bot):
         user_info_path = os.path.join(f"{os.getcwd()}/res/","users_data.json")
         with open(user_info_path) as f:
             self.users_data = json.load(f)
+        self.refresh_database = lambda file: self.file.write(self.guilds_data if file == "guilds_data.json" else self.users_data,file,f"{os.getcwd()}/res/")
         # Add all commands and systems
         self.add_all_cogs()
 
