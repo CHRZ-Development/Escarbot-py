@@ -1,9 +1,8 @@
 ![Escarbot Icon](https://eapi.pcloud.com/getpubthumb?code=XZRid0ZTDpXjJtGtXHb2MjxJB6w57vMB4V0&linkpassword=undefined&size=1078x190&crop=0&type=auto)
 # Escarbot
-_French bot_
-Serveur Discord: https://discord.gg/yEvBg8CPaM
+French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 
-## Sommaires
+## Sommaires.
 * [Information.](#information)
 * [Technologies.](#technologies)
 
