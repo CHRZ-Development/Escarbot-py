@@ -13,6 +13,10 @@ class DataBaseSystem(commands.Cog):
         self.refresh_database = lambda file: self.bot.file.write(self.bot.guilds_data if file == "guilds_data.json" else self.bot.users_data,file,f"{os.getcwd()}/res/")
 
     @commands.Cog.listener()
+    async def on_ready(self):
+        await self.check_unban.start()
+
+    @commands.Cog.listener()
     async def on_guild_join(self,guild):
         """ on_guild_join() -> Create database for the guild which as been added the Bot. """
         print(f"{guild.name} vient de m'ajouté !")
@@ -58,22 +62,37 @@ class DataBaseSystem(commands.Cog):
         self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
-    async def on_ready(self):
-        await self.check_unban.start()
+    async def on_command(self,ctx):
+        command_name,*args = ctx.message.content
+        if str(ctx.command.name) == "ban":
+            self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["IsBanned"] = True
+            if self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["Why"] is not None:
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["Why"].append(args[2])
+            else:
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["Why"] = [args[2]]
+            if self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] is not None:
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["WhoAtBanned"].append(ctx.author.name)
+            else:
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["WhoAtBanned"] = [ctx.author.name]
+            if args[1] == "def":
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["Definitive"] = True
+            else:
+                self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanSystem"] = {"day_counter": 0,"how_much_days": args[1]}
+                if self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"] is not None:
+                    self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"].append(args[1])
+                else:
+                    self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"] = [args[1]]
+        self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_message(self,message):
-        if isinstance(message.channel,DMChannel) is False:
-            if message.author.bot is False:
+        if message.author.bot is False:
+            if isinstance(message.channel,DMChannel) is False:
                 year,month,day = str(datetime.datetime.today().date()).split("-")
                 try:
                     self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
                 except KeyError:
-                    try:
-                        self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 0
-                        self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] += 1
-                    except KeyError:
-                        pass
+                    self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{month}"] = 1
                 self.refresh_database("users_data.json")
 
     @loop(hours=24)

@@ -22,10 +22,11 @@ import datetime
 from googletrans import Translator
 from discord import Colour,Embed,Intents,Message
 from discord.ext import commands
-from discord.ext.commands import CheckFailure,CommandNotFound,MissingRequiredArgument
+from discord.ext.commands import CommandNotFound
 from discord_slash import ButtonStyle,ComponentContext,SlashCommand,SlashContext
 from discord_slash.utils.manage_components import create_actionrow,create_button,wait_for_component
 
+from commands.get import GetCommand
 from src.commands.mute import MuteCommand
 from src.commands.ban import BanCommand
 from src.commands.help import HelpCommand
@@ -93,12 +94,11 @@ class Bot(commands.Bot):
         self.add_all_cogs()
 
     async def check_permission(*args):
-        self = args[0];ctx = args[1]
+        self,ctx = args
         for n,role_database in enumerate(self.guilds_data[str(ctx.guild.id)]["roles"]):
             for role in ctx.author.roles:
-                if int(role_database["role_id"]) == int(role.id):
-                    if role_database["can_execute_command"].count(ctx.command.name) >= 1:
-                        return True
+                if (int(role_database["role_id"]) == int(role.id)) and (role_database["can_execute_command"].count(ctx.command.name) >= 1):
+                    return True
             if int(n) == len(self.guilds_data[str(ctx.guild.id)]["roles"])-1:
                 return False
 
@@ -110,15 +110,10 @@ class Bot(commands.Bot):
             msg.set_footer(text=self.success_footer[0],icon_url=self.user.avatar_url) if isinstance(ctx,SlashContext) or isinstance(ctx,Message) else msg.set_footer(text=self.success_footer[1],icon_url=self.user.avatar_url)
         # Send error message embed
         if _error is not None:
-            if len(error_msg) == 1:
-                msg.add_field(name=error_msg[0][0],value=error_msg[0][1](_error))
-            else:
-                msg.add_field(name=error_msg[1][0],value=error_msg[1][1],inline=False)
+            msg.add_field(name=error_msg[0][0],value=error_msg[0][1](_error)) if len(error_msg) == 1 else msg.add_field(name=error_msg[1][0],value=error_msg[1][1],inline=False)
             msg.set_footer(text=self.error_footer[0],icon_url=self.user.avatar_url) if isinstance(ctx,SlashContext) or isinstance(ctx,Message) else msg.set_footer(text=self.error_footer[1],icon_url=self.user.avatar_url)
         msg.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
-        if isinstance(ctx,Message):
-            return await ctx.channel.send(embed=msg)
-        return await ctx.send(embed=msg,components=action)
+        return await ctx.channel.send(embed=msg) if isinstance(ctx,Message) else await ctx.send(embed=msg,components=action)
 
     async def can_rename_after_invoke_command(self,cog,ctx,action):
         create_msg = lambda name,value,author: Embed().add_field(name=name,value=value).set_author(name=author.name,icon_url=author.avatar_url)
@@ -143,7 +138,7 @@ class Bot(commands.Bot):
         self.add_cog(all_slashes[1])
         for slash in all_slashes:
             self.slash.get_cog_commands(slash)
-        all_commands = [MuteCommand(self),NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
+        all_commands = [GetCommand(self),MuteCommand(self),NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
         all_systems = [TicketSystem(self),DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
@@ -152,29 +147,18 @@ class Bot(commands.Bot):
 
     async def on_ready(self):
         await self.change_presence(activity=Activities(version=self.config["BOT"]["version"]))
-        print(f"==================================================")
-        print(f"✅ Est lancée depuis {datetime.datetime.today().date()}")
-        print(f"🤖 Bot: {self.user.name}")
-        print(f"🟢 Connecté sur: {len(self.guilds)} serveurs")
-        print(f"==================================================")
-        print(f"[{datetime.datetime.today().date()}] Je suis prêt ! 👌")
 
     async def on_command_error(self,ctx,ex):
         print(ex,type(ex))
         if isinstance(ex,CommandNotFound):
-            await ctx.send(embed=Embed(description=self.translator.translate(src="en",dest="fr",text=str(ex)).text,colour=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
-        if isinstance(ex,CheckFailure):
-            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
-            await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
-        if isinstance(ex,MissingRequiredArgument):
-            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda __error: self.translator.translate(src="en",dest="fr",text=str(__error)).text]]
-            await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
+            return await ctx.send(embed=Embed(description=self.translator.translate(src="en",dest="fr",text=str(ex)).text,colour=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
+        error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
+        return await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
 
     async def on_slash_command_error(self,ctx,ex):
         print(ex,type(ex))
         if ctx.name == "nickname":
             error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text],["Votre pseudo doit contenir:","`" + "".join(Nickname.accept_letter) + "`"]]
-            await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
-        if ctx.name == "myvocal":
-            error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
-            await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
+            return await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
+        error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
+        return await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)

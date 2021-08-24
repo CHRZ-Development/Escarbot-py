@@ -1,7 +1,7 @@
 import datetime
 
 from discord.ext import commands
-from discord import Colour,Embed,Member,utils,Forbidden,NotFound
+from discord import Colour,Embed,utils,Forbidden,NotFound
 from discord.ext.commands import has_permissions
 
 
@@ -36,7 +36,7 @@ class AutoMessagesSendSystem(commands.Cog):
                     compare_role = b_role
                 else:
                     # Stop this function
-                    return False
+                    return
                 # Detect the new name of role
                 role_update = None
                 for role in change_role:
@@ -116,7 +116,7 @@ class AutoMessagesSendSystem(commands.Cog):
             try:
                 message_url[1]
             except (KeyError,IndexError):
-                return None
+                return
             # discord.com/channels
             # If URL contain "discord.com" and "channels"
             if (message_url[1] == "discord.com") and (message_url[2] == "channels"):
@@ -127,14 +127,14 @@ class AutoMessagesSendSystem(commands.Cog):
                     # Try to found the message in the guild
                     msg = await text_channel.fetch_message(int(message_url[5]))
                 except NotFound:
-                    pass
+                    return
                 else:
                     # If contain multiple Embeds
                     if len(msg.embeds) >= 1:
                         for n,embed in enumerate(msg.embeds):
                             final_messages.append(Embed(title=str(embed.title),description=str(embed.description)))
                             for field in embed.fields:
-                                final_messages[n].add_field(name=field.name,value=field.value)
+                                final_messages[n].add_field(name=field.name,value=field.value,inline=field.inline)
                             final_messages[n].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}. | Posté le {msg.created_at.date()}",icon_url=msg.guild.icon_url)
                     else:
                         final_messages.append(Embed())
@@ -153,16 +153,6 @@ class AutoMessagesSendSystem(commands.Cog):
                             pass
                         await message.channel.send(embed=embd)
 
-    async def check_user_booster(self,b: Member,a: Member):
-        if b.premium_since == a.premium_since:
-            return False
-        guild = utils.get(self.bot.guilds,id=a.guild_id)
-        if a.premium_since is None:
-            return await a.remove_roles(self.bot.get_role(guild,self.bot.ids[a.guild.id]["id_role_booster"]))
-        channel_lvlup = self.bot.get_channel(self.bot.ids[a.guild.id]["id_channel_lvlup"])
-        await a.add_roles(self.bot.get_role(guild,self.bot.ids[a.guild.id]["id_role_booster"]))
-        await channel_lvlup.send(embed=self.bot.create_embed("> __**Wow !**__",f"_ _\n**Merci** {a.mention} **d'avoir boost le serveur !** ❤ ! Vous avez maintenant accès à des avantages !\n_ _",0xff80c0))
-
     async def on_guild_message(self,guild):
         guild_message = Embed(title="> Escarbot est dans la place !",colour=Colour.from_rgb(0,0,0))
         guild_message.add_field(name="Merci d'avoir choisi·e Escarbot.",value="Escarbot votre bot multifonction.")
@@ -170,8 +160,16 @@ class AutoMessagesSendSystem(commands.Cog):
         await guild.system_channel.send(embed=guild_message)
 
     @commands.Cog.listener()
-    async def on_guild_join(self,guild):
-        await self.on_guild_message(guild)
+    async def on_ready(self):
+        print(f"|=------------------------------------------------=|")
+        print(f"| - ✅ Est lancée depuis {datetime.datetime.today().date()}")
+        print(f"| - 🤖 Bot: {self.bot.user.name}")
+        print(f"| - 🟢 Connecté sur: {len(self.bot.guilds)} serveurs")
+        print(f"|=------------------------------------------------=|")
+        print(f"[{datetime.datetime.today().date()}] Je suis prêt ! 👌")
+
+    @commands.Cog.listener()
+    async def on_guild_join(self,guild): await self.on_guild_message(guild)
 
     @commands.Cog.listener()
     async def on_member_ban(self,guild,user):
@@ -187,15 +185,20 @@ class AutoMessagesSendSystem(commands.Cog):
 
     @commands.Cog.listener()
     @has_permissions(manage_roles=True)
-    async def on_member_update(self,before,after):
-        await self.detect_role_changed(before,after)
-        await self.check_user_booster(before,after)
+    async def on_member_update(self,before,after): await self.detect_role_changed(before,after)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self,member,before,after):
         if before.channel is not None:
             if int(before.channel.id) == int(self.bot.guilds_data[str(member.guild.id)]["vocals_ID"]["create_vocal"]):
                 await self.create_vocal_message(member)
+
+    @commands.Cog.listener()
+    async def on_command(self,ctx):
+        if str(ctx.command.name) in ["warning","warn"]:
+            pass
+        if str(ctx.command.name) == "mute":
+            pass
 
     @commands.Cog.listener()
     async def on_message(self,message): await self.message_from_url_discord(message)

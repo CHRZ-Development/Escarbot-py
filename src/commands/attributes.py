@@ -5,12 +5,14 @@ from typing import List
 from discord.ext import commands
 from discord import Colour,Embed,utils
 
+from src.exceptions.InvalidSubcommand import InvalidSubcommand
+
 
 class AttributesCommand(commands.Cog):
     """ AttributesCommand() -> Represent the Server Configurator """
     def __init__(self,bot):
         self.bot = bot
-        self.attribute_func = {"can_attribute_role": self.role_can_attribute,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"channel": self.attribute_channel}
+        self.attribute_func = {"can_attribute_role": self.role_can_attribute,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"create_personal_vocal": self.attribute_create_vocal_channel,"channel": self.attribute_channel}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     @staticmethod
@@ -48,14 +50,12 @@ class AttributesCommand(commands.Cog):
         """ attribute_role() -> !attribute role *args
             * It allow to attribute the role at an emoji ! (For role attribute message)
                 :param args: role_id emoji info | ex: 852576991504105514 👤 "Default rôle" "" """
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            role_id,emoji,info,can_execute_command = args
-            if isinstance(self.bot.guilds_data[str(ctx.guild.id)]["roles"],dict):
-                self.bot.guilds_data[str(ctx.guild.id)]["roles"] = []
-            role = utils.get(ctx.guild.roles,id=int(role_id))
-            self.bot.guilds_data[str(ctx.guild.id)]["roles"].append({"role_name": role.name,"role_id": role_id,"emoji": emoji,"info": info,"can_execute_command": str(can_execute_command).split(",")})
-            self.refresh_database()
+        role_id,emoji,info,can_execute_command = args
+        if isinstance(self.bot.guilds_data[str(ctx.guild.id)]["roles"],dict):
+            self.bot.guilds_data[str(ctx.guild.id)]["roles"] = []
+        role = utils.get(ctx.guild.roles,id=int(role_id))
+        self.bot.guilds_data[str(ctx.guild.id)]["roles"].append({"role_name": role.name,"role_id": role_id,"emoji": emoji,"info": info,"can_execute_command": str(can_execute_command).split(",")})
+        self.refresh_database()
 
     async def attribute_stat_members_channel(self,ctx,args):
         """ attribute_stat_members_channel() -> !attribute members_stat *args
@@ -98,19 +98,6 @@ class AttributesCommand(commands.Cog):
             self.bot.guilds_data[guild_id]["categories_ID"]["vocals_channel"] = int(vocal_channel.category_id)
             self.refresh_database()
 
-    async def attribute_perm_commands(self,ctx,args):
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            command,role = args
-            try:
-                self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"][command]
-            except KeyError:
-                self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"][command] = []
-                self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"][command].append(int(role))
-            else:
-                self.bot.guilds_data[str(ctx.guild.id)]["role_perm_command"][command].append(int(role))
-            self.refresh_database()
-
     @commands.command(name="attribute")
     @commands.is_owner()
     async def attribute_value(self,ctx,option,*args):
@@ -119,6 +106,6 @@ class AttributesCommand(commands.Cog):
         try:
             await self.attribute_func[option](ctx,args)
         except KeyError:
-            return await ctx.send(embed=Embed(title="> **⚠ Attention !**",description="Cette commande n'existe ou verifié l'orthographe !",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
+            raise InvalidSubcommand(option)
         await ctx.message.delete()
 

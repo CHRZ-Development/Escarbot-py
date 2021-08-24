@@ -8,14 +8,10 @@ class Ping(object):
         self.obj = obj
         self.bot = bot
         self.get_latency = lambda: round(self.bot.latency*1000)
+        self.obj.ping_request.add_check(self.bot.check_permission)
 
-    def ping_indicator(self,latency):
-        if latency <= 100.0:
-            indicator = "🟢"
-        elif 100.0 <= latency <= 200.0:
-            indicator = "🟠"
-        elif latency >= 200.0:
-            indicator = "🔴"
+    def ping_indicator(self,latency) -> str:
+        indicator = "🟢" if latency <= 100.0 else "🟠" if 100.0 <= latency <= 200.0 else "🔴"
         return indicator
 
     async def ping_message(self,ctx):
@@ -25,7 +21,7 @@ class Ping(object):
         ping_message.add_field(name="> **Ping Request.**",value=f"{indicator} latency: **{bot_latency}** ms")
         ping_message.set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url)
         ping_message.set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url)
-        await ctx.send(embed=ping_message)
+        return await ctx.send(embed=ping_message)
 
 
 class PingCommand(Ping,commands.Cog):
