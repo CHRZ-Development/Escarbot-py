@@ -94,12 +94,12 @@ class Bot(commands.Bot):
 
     async def check_permission(*args):
         self = args[0];ctx = args[1]
-        for n,role_database in enumerate(self.bot.guilds_data[str(ctx.guild.id)]["roles"]):
+        for n,role_database in enumerate(self.guilds_data[str(ctx.guild.id)]["roles"]):
             for role in ctx.author.roles:
                 if int(role_database["role_id"]) == int(role.id):
-                    if role_database["can_execute_command"].count(self.name_command) >= 1:
+                    if role_database["can_execute_command"].count(ctx.command.name) >= 1:
                         return True
-            if int(n) == len(self.bot.guilds_data[str(ctx.guild.id)]["roles"])-1:
+            if int(n) == len(self.guilds_data[str(ctx.guild.id)]["roles"])-1:
                 return False
 
     async def send_message_after_invoke(self,ctx,success_msg: list,error_msg: list,action=None,value=None,_error=None):
