@@ -3,8 +3,8 @@
 French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 
 ## Sommaires.
-* [Information.](#information)
-* [Librairies.](#librairies)
+* [Information.](#-information)
+* [Librairies.](#-librairies)
 * [Wiki.](https://github.com/NaulaN/Escarbot-py/wiki)
     * [Premiers pas.](https://github.com/NaulaN/Escarbot-py/wiki/Premiers-pas)
     * [Commandes.](https://github.com/NaulaN/Escarbot-py/wiki/Commandes)
