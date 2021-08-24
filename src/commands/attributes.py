@@ -10,7 +10,7 @@ class AttributesCommand(commands.Cog):
     """ AttributesCommand() -> Represent the Server Configurator """
     def __init__(self,bot):
         self.bot = bot
-        self.attribute_func = {"role_emoji": self.attribute_role_emoji,"role_info": self.attribute_role_info,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"rules_message": self.attribute_rules_message,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"channel": self.attribute_channel}
+        self.attribute_func = {"can_attribute_role": self.role_can_attribute,"role": self.attribute_role,"members_stat": self.attribute_stat_members_channel,"create_personal_vocal": self.attribute_create_vocal_channel,"perm_command": self.attribute_perm_commands,"channel": self.attribute_channel}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
 
     @staticmethod
@@ -24,40 +24,37 @@ class AttributesCommand(commands.Cog):
             if n == len(ctx.author.roles) - 1:
                 return await ctx.send(embed=Embed(title="> **⚠ Attention !**",description="Vous n'avez pas la permission d'éxecutez cette commande !",color=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
 
-    async def attribute_role_emoji(self,ctx,args):
+    async def role_can_attribute(self,ctx,args):
         """ attribute_role_emoji() -> !attribute role_emoji *args
             * It allow to attribute an emoji has each role !
-                :param args: role emoji | ex: member_role 👤 """
+                :param args: page role | ex: 1 852576991504105514 """
         perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
         if perm_check == "pass":
-            role,emoji = args
+            page,role_id = args
             guild_id = str(ctx.guild.id)
-            self.bot.guilds_data[guild_id]["roles_emoji_reaction"][role] = emoji
-            # None info for the new role by default.
-            self.bot.guilds_data[guild_id]["roles_info"][role] = None
+            try:
+                self.bot.guilds_data[guild_id]["roles_can_attributes"][str(page)]
+            except KeyError:
+                self.bot.guilds_data[guild_id]["roles_can_attributes"][str(page)] = []
+            except TypeError:
+                self.bot.guilds_data[guild_id]["roles_can_attributes"] = {}
+                self.bot.guilds_data[guild_id]["roles_can_attributes"][str(page)] = []
             # If not have doubloon.
-            if self.bot.guilds_data[guild_id]["roles_can_attributes"].count(role) == 0:
-                self.bot.guilds_data[guild_id]["roles_can_attributes"].append(role)
-            self.refresh_database()
-
-    async def attribute_role_info(self,ctx,args):
-        """ attribute_role_emoji() -> !attribute role_info *args
-            * It allow to attribute an info has each role ! (For role attribute message)
-                :param args: role info | ex: member_role "Default role" """
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            role,info = args
-            self.bot.guilds_data[str(ctx.guild.id)]["roles_info"][role] = info
+            if self.bot.guilds_data[guild_id]["roles_can_attributes"][str(page)].count(int(role_id)) == 0:
+                self.bot.guilds_data[guild_id]["roles_can_attributes"][str(page)].append(int(role_id))
             self.refresh_database()
 
     async def attribute_role(self,ctx,args):
         """ attribute_role() -> !attribute role *args
             * It allow to attribute the role at an emoji ! (For role attribute message)
-                :param args: emoji role_id | ex: 👤 852576991504105514 """
+                :param args: role_id emoji info | ex: 852576991504105514 👤 "Default rôle" "" """
         perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
         if perm_check == "pass":
-            emoji,role_id = args
-            self.bot.guilds_data[str(ctx.guild.id)]["roles"][emoji] = int(role_id)
+            role_id,emoji,info,can_execute_command = args
+            if isinstance(self.bot.guilds_data[str(ctx.guild.id)]["roles"],dict):
+                self.bot.guilds_data[str(ctx.guild.id)]["roles"] = []
+            role = utils.get(ctx.guild.roles,id=int(role_id))
+            self.bot.guilds_data[str(ctx.guild.id)]["roles"].append({"role_name": role.name,"role_id": role_id,"emoji": emoji,"info": info,"can_execute_command": str(can_execute_command).split(",")})
             self.refresh_database()
 
     async def attribute_stat_members_channel(self,ctx,args):
@@ -70,16 +67,6 @@ class AttributesCommand(commands.Cog):
             # Enable the functionality
             self.bot.guilds_data[guild_id]["functions"]["stat"] = True
             self.bot.guilds_data[guild_id]["messages_ID"]["stat"] = int(args[0])
-            self.refresh_database()
-
-    async def attribute_rules_message(self,ctx,args):
-        """ attribute_rules_message() -> !attribute rules_message *args
-            * It allow to enable a little verification on the server when he/she join this one !
-                :param args: message_id | ex: 852576991504105514 """
-        perm_check = await self.perm_check(ctx,[ctx.guild.owner.roles[len(ctx.guild.owner.roles) - 1].id])
-        if perm_check == "pass":
-            guild_id = str(ctx.guild.id)
-            self.bot.guilds_data[guild_id]["messages_ID"]["rules"] = int(args[0])
             self.refresh_database()
 
     async def attribute_channel(self,ctx,args):

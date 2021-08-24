@@ -49,7 +49,7 @@ class AutoMessagesSendSystem(commands.Cog):
                 level_up_message.add_field(name="**Vous avez eu un niveau superieurs**",value=f"Vous avez maintenant le rôle `{role_update}`.")
                 level_up_message.set_author(name=a.name,icon_url=a.avatar_url)
                 get_role = utils.get(a.guild.roles,name=role_update)
-                if get_role.id == int(self.bot.guilds_data[str(a.guild.id)]["roles"]["✅"]):
+                if get_role.id == int(self.bot.guilds_data[str(a.guild.id)]["roles"][0]["role_id"]):
                     await self.welcome_message(a)
                 return await channel_lvlup.send(embed=level_up_message)
 
@@ -162,6 +162,16 @@ class AutoMessagesSendSystem(commands.Cog):
         channel_lvlup = self.bot.get_channel(self.bot.ids[a.guild.id]["id_channel_lvlup"])
         await a.add_roles(self.bot.get_role(guild,self.bot.ids[a.guild.id]["id_role_booster"]))
         await channel_lvlup.send(embed=self.bot.create_embed("> __**Wow !**__",f"_ _\n**Merci** {a.mention} **d'avoir boost le serveur !** ❤ ! Vous avez maintenant accès à des avantages !\n_ _",0xff80c0))
+
+    async def on_guild_message(self,guild):
+        guild_message = Embed(title="> Escarbot est dans la place !",colour=Colour.from_rgb(0,0,0))
+        guild_message.add_field(name="Merci d'avoir choisi·e Escarbot.",value="Escarbot votre bot multifonction.")
+        guild_message.add_field(name="Wiki !",value="Pour plus de détails\nVous avez droit au Wiki de Escarbot -> https://github.com/NaulaN/Escarbot-py/wiki",inline=False)
+        await guild.system_channel.send(embed=guild_message)
+
+    @commands.Cog.listener()
+    async def on_guild_join(self,guild):
+        await self.on_guild_message(guild)
 
     @commands.Cog.listener()
     async def on_member_ban(self,guild,user):

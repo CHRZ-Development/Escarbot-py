@@ -19,7 +19,7 @@ class Analytics(commands.Cog):
 
 	async def count_members(self,guild):
 		""" count_members() -> Count all members in members role. """
-		role_members = utils.get(guild.roles,id=int(self.bot.guilds_data[str(guild.id)]["roles"]["✅"]))
+		role_members = utils.get(guild.roles,id=int(self.bot.guilds_data[str(guild.id)]["roles"][0]["role_id"]))
 		self.stats[guild.id] = {"all_members": 0}
 		self.stats[guild.id]["all_members"] = len(role_members.members)
 		return await self.refresh_counter(guild)

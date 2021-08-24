@@ -22,10 +22,11 @@ import datetime
 from googletrans import Translator
 from discord import Colour,Embed,Intents,Message
 from discord.ext import commands
-from discord.ext.commands import CheckFailure,CommandNotFound,Context,MissingRequiredArgument
+from discord.ext.commands import CheckFailure,CommandNotFound,MissingRequiredArgument
 from discord_slash import ButtonStyle,ComponentContext,SlashCommand,SlashContext
 from discord_slash.utils.manage_components import create_actionrow,create_button,wait_for_component
 
+from src.commands.mute import MuteCommand
 from src.commands.ban import BanCommand
 from src.commands.help import HelpCommand
 from src.commands.edit import EditCommand
@@ -78,7 +79,7 @@ class Bot(commands.Bot):
         self.error_footer = ["Escarbot n'a pas pu effectué votre demande !","Utilisé les nouvelles commandes slash ! Escarbot n'a pas pu effectué votre demande !"]
         # Template for database
         self.template = {"roles_can_attributes": [],"roles_emoji_reaction": {},"functions": {"stat": False,"verif_rules": True,"create_personal_vocal": False},"categories_ID": {"vocals_channel": 0},"vocals_ID": {"create_vocal": 0},"messages_ID": {"roles": 0,"rules": 0,"stat": 0,},"messages": {"welcome": [],"rules": {"authorized": [],"forbidden": [],"verif_rules": ["> Avez-vous pris connaisance des régles ?","Si oui, clické sur la reaction ci-dessous"]}},"roles": {},"roles_info": {}}
-        self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None,"Hour": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {}}
+        self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfMutes": 0,"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None}},"MuteInfo": {"IsMuted": False,"WhoAtMute": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfMute": {"Year": None,"Month": None,"Day": None,"Hours": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"MuteSystem": {},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {}}
         # Guilds settings
         guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
         with open(guilds_data_path) as f:
@@ -90,6 +91,16 @@ class Bot(commands.Bot):
         self.refresh_database = lambda file: self.file.write(self.guilds_data if file == "guilds_data.json" else self.users_data,file,f"{os.getcwd()}/res/")
         # Add all commands and systems
         self.add_all_cogs()
+
+    async def check_permission(*args):
+        self = args[0];ctx = args[1]
+        for n,role_database in enumerate(self.bot.guilds_data[str(ctx.guild.id)]["roles"]):
+            for role in ctx.author.roles:
+                if int(role_database["role_id"]) == int(role.id):
+                    if role_database["can_execute_command"].count(self.name_command) >= 1:
+                        return True
+            if int(n) == len(self.bot.guilds_data[str(ctx.guild.id)]["roles"])-1:
+                return False
 
     async def send_message_after_invoke(self,ctx,success_msg: list,error_msg: list,action=None,value=None,_error=None):
         msg = Embed(title=self.titles[0] if value is None else self.titles[1])
@@ -132,7 +143,7 @@ class Bot(commands.Bot):
         self.add_cog(all_slashes[1])
         for slash in all_slashes:
             self.slash.get_cog_commands(slash)
-        all_commands = [NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
+        all_commands = [MuteCommand(self),NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
         all_systems = [TicketSystem(self),DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]
@@ -154,7 +165,7 @@ class Bot(commands.Bot):
             await ctx.send(embed=Embed(description=self.translator.translate(src="en",dest="fr",text=str(ex)).text,colour=Colour.from_rgb(255,255,0)).set_author(name=ctx.author.name,icon_url=ctx.author.avatar_url))
         if isinstance(ex,CheckFailure):
             error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
-            await self.send_message_after_invoke(ctx,[],error_msg,_error="You are not in vocal !\n You need to create or join a vocal.")
+            await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
         if isinstance(ex,MissingRequiredArgument):
             error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda __error: self.translator.translate(src="en",dest="fr",text=str(__error)).text]]
             await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
@@ -167,4 +178,3 @@ class Bot(commands.Bot):
         if ctx.name == "myvocal":
             error_msg = [["Changement n'a pas pu êtres effectué avec :x: succès !",lambda _error: self.translator.translate(src="en",dest="fr",text=str(_error)).text]]
             await self.send_message_after_invoke(ctx,[],error_msg,_error=ex)
-

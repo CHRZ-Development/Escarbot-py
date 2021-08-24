@@ -51,6 +51,7 @@ class TicketSystem(commands.Cog):
 
     async def open_ticket(self,ctx: ComponentContext) -> Message:
         """ open_ticket() -> Send a confirmation message for open a ticket. """
+        print(f"[{datetime.datetime.today().date()}] L'utilisateur {ctx.author.name} à commence a ouvrir un ticket.")
         # Refresh ID Tickets
         self.id_ticket += 1
         # Message of confirmation

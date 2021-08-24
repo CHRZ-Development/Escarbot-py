@@ -15,12 +15,14 @@ class DataBaseSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_join(self,guild):
         """ on_guild_join() -> Create database for the guild which as been added the Bot. """
+        print(f"{guild.name} vient de m'ajouté !")
         self.bot.guilds_data[str(guild.id)] = self.bot.template
         self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_guild_remove(self,guild):
         """ on_guild_remove() -> Create database for the guild which as been removed the Bot. """
+        print(f"{guild.name} vient de me supprimé !")
         self.bot.guilds_data.pop(str(guild.id))
         self.refresh_database("guilds_data.json")
 
@@ -94,3 +96,7 @@ class DataBaseSystem(commands.Cog):
                             await guild.unban(member)
                         print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à eu sa verification effectuée ✅🧐")
         self.refresh_database("users_data.json")
+
+    @loop(hours=1)
+    async def check_unmute(self):
+        pass
