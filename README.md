@@ -5,7 +5,7 @@ French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 ## Sommaires.
 * [Information.](#-information)
 * [Librairies.](#-librairies)
-* [Fiabilité.](#-fiabilite)
+* [Fiabilité.](#-fiabilité)
 * [Wiki.](https://github.com/NaulaN/Escarbot-py/wiki)
     * [Premiers pas.](https://github.com/NaulaN/Escarbot-py/wiki/Premiers-pas)
     * [Commandes.](https://github.com/NaulaN/Escarbot-py/wiki/Commandes)
