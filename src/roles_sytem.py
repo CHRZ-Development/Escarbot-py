@@ -50,4 +50,3 @@ class RolesSystem(commands.Cog):
 					if 2500 < self.bot.users_data[str(message.guild.id)][str(message.author.id)]["NumberOfMessages"][f"{year}-{m}"]:
 						return await message.author.add_roles(role)
 					return await message.author.remove_roles(role)
-

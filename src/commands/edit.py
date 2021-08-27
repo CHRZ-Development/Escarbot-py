@@ -111,4 +111,3 @@ class EditCommand(commands.Cog):
 		except KeyError:
 			raise InvalidSubcommand(option)
 		await ctx.message.delete()
-

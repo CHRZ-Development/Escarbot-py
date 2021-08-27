@@ -12,8 +12,7 @@ class MuteCommand(commands.Cog):
         self.mute.add_check(self.bot.check_permission)
 
     @commands.command(name="mute")
-    async def mute(self,ctx: Context,member_id,how_much,raison):
-        member: Member = utils.get(ctx.guild.members,id=int(member_id))
+    async def mute(self,ctx: Context,member: Member,how_much,raison):
         for n,role_database in enumerate(self.bot.guilds_data[str(ctx.guild.id)]["roles"]):
             if role_database["role_name"] == "mute":
                 role = utils.get(ctx.guild.roles,id=int(role_database["role_id"]))

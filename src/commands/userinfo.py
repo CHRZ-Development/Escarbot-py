@@ -1,4 +1,4 @@
-from discord import Colour,Embed,utils
+from discord import Colour,Embed,Member
 from discord.ext import commands
 from discord.ext.commands import Context,UserNotFound
 from discord_slash import SlashContext,cog_ext
@@ -11,10 +11,9 @@ class UserInfo(object):
         self.bot = bot
         self.error_msg = [["⚠ Utilisateur non trouvé !",lambda error: self.bot.translator.translate(src="en",dest="fr",text=error).text]]
 
-    async def info_user_message(self,ctx,arg):
-        user = utils.get(ctx.guild.members,id=int(arg))
+    async def info_user_message(self,ctx,user: Member):
         if user is None:
-            raise UserNotFound(f"{arg}")
+            raise UserNotFound(f"{user}")
         info_message = Embed(title=f"> 📰 **|** **Information sur {user}.**",colour=Colour.from_rgb(35,39,42))
         info_message.add_field(name="🏷 **|** Pseudo:",value=f"Serveur: `{user.display_name}`\nRéel: `{user.name}`")
         info_message.add_field(name="💳 **|** ID:",value=f"`{user.id}`")
@@ -78,7 +77,7 @@ class UserInfoCommand(UserInfo,commands.Cog):
         self.bot = bot
 
     @commands.command(name="userinfo",aliases=["ui"])
-    async def userinfo_command(self,ctx: Context,_id: str): return await self.info_user_message(ctx,int(ctx.author.id)) if _id == "me" else await self.info_user_message(ctx,int(_id))
+    async def userinfo_command(self,ctx: Context,identifiant: Member): return await self.info_user_message(ctx,identifiant)
 
     @userinfo_command.error
     async def userinfo_error(self,ctx: Context,error): return await self.bot.send_message_after_invoke(ctx,[],self.error_msg,error=error)
@@ -92,7 +91,7 @@ class UserInfoSlash(UserInfo,commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_slash(name="userinfo",description="Donne des informations supplémentaires sur un utilisateur grâce à son ID",options=userinfo_option)
-    async def userinfo(self,ctx: SlashContext,identifiant: str): return await self.info_user_message(ctx,int(ctx.author.id)) if identifiant == "me" else await self.info_user_message(ctx,int(identifiant))
+    async def userinfo(self,ctx: SlashContext,identifiant: Member): return await self.info_user_message(ctx,identifiant)
 
     @userinfo.error
     async def userinfo_error(self,ctx: SlashContext,error): return await self.bot.send_message_after_invoke(ctx,[],self.error_msg,error=error)

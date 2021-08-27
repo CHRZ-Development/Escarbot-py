@@ -17,7 +17,6 @@
 ======================================================================= """
 import os
 import json
-import datetime
 
 from googletrans import Translator
 from discord import Colour,Embed,Intents,Message
@@ -97,7 +96,7 @@ class Bot(commands.Bot):
         self,ctx = args
         for n,role_database in enumerate(self.guilds_data[str(ctx.guild.id)]["roles"]):
             for role in ctx.author.roles:
-                if (int(role_database["role_id"]) == int(role.id)) and (role_database["can_execute_command"].count(ctx.command.name) >= 1):
+                if (int(role_database["role_id"]) == int(role.id)) and (role_database["can_execute_command"].count(ctx.command.name) >= 1) or (role_database["can_execute_command"].count("*") >= 1):
                     return True
             if int(n) == len(self.guilds_data[str(ctx.guild.id)]["roles"])-1:
                 return False
