@@ -33,3 +33,7 @@ French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 * Ce projet étais plus principalement pour moi ! Mais ce bot est compatible sur plusieurs serveurs sans "aucun probleme"
 * Aussi, Il ne garanti en aucun cas un hebergement 24h/24 et 7j/7 et ne garanti pas non plus d'un durée de vie indeterminée.
 * Donc si vous utilisez ce bot, c'est a vos risque et péril !
+
+
+
+_Copyright (c) 2021 CHRZ Developement._
