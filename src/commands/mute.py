@@ -2,7 +2,7 @@ from discord import Member,utils
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from exceptions.NoRoleAttribute import NoRoleAttribute
+from src.exceptions.NoRoleAttribute import NoRoleAttribute
 from src.exceptions.RoleMuteNotAttribute import RoleMuteNotAttribute
 
 

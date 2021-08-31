@@ -79,12 +79,9 @@ class UserInfoCommand(UserInfo,commands.Cog):
     @commands.command(name="userinfo",aliases=["ui"])
     async def userinfo_command(self,ctx: Context,identifiant: Member): return await self.info_user_message(ctx,identifiant)
 
-    @userinfo_command.error
-    async def userinfo_error(self,ctx: Context,error): return await self.bot.send_message_after_invoke(ctx,[],self.error_msg,error=error)
-
 
 class UserInfoSlash(UserInfo,commands.Cog):
-    userinfo_option = [create_option(name="identifiant",description="Specifié l'ID de l'utilisateur",required=True,option_type=3)]
+    userinfo_option = [create_option(name="identifiant",description="Specifié l'ID de l'utilisateur",required=True,option_type=6)]
 
     def __init__(self,bot):
         UserInfo.__init__(self,self,bot)
@@ -92,6 +89,3 @@ class UserInfoSlash(UserInfo,commands.Cog):
 
     @cog_ext.cog_slash(name="userinfo",description="Donne des informations supplémentaires sur un utilisateur grâce à son ID",options=userinfo_option)
     async def userinfo(self,ctx: SlashContext,identifiant: Member): return await self.info_user_message(ctx,identifiant)
-
-    @userinfo.error
-    async def userinfo_error(self,ctx: SlashContext,error): return await self.bot.send_message_after_invoke(ctx,[],self.error_msg,error=error)

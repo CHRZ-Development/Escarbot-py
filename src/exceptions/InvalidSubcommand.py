@@ -1,5 +1,6 @@
 
 class InvalidSubcommand(Exception):
     def __init__(self,subcommand_invalid):
-        message = f"This subcommand `{subcommand_invalid}` is not exist !\nPlease look the Wiki (Check bot profile) or execute this command: `!help`"
-        super().__init__(message)
+        self.message = f"""❗ This subcommand `{subcommand_invalid}` is not exist !
+        Please look the [wiki](https://github.com/NaulaN/Escarbot-py/wiki/Commandes) or execute this command -> `!help` or `/help` for a fast documentation."""
+        super().__init__(self.message)

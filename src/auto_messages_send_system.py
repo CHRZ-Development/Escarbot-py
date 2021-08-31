@@ -1,7 +1,7 @@
 import datetime
 
 from discord.ext import commands
-from discord import Colour,Embed,utils,Forbidden,NotFound
+from discord import Colour,Embed,HTTPException,Member,utils,Forbidden,NotFound
 from discord.ext.commands import has_permissions
 
 
@@ -68,7 +68,7 @@ class AutoMessagesSendSystem(commands.Cog):
         create_vocal_message.set_footer(text=f"Effectué avec succès grâce à {self.bot.user.name}, votre serviteur !",icon_url=self.bot.user.avatar_url)
         await text_channel.send(embed=create_vocal_message)
 
-    async def ban_message(self,guild,member,how_much_days,why):
+    async def ban_message(self,guild,member: Member,how_much_days,why):
         # if a channel is attributed
         ban_message = Embed(title="> Oh ! Un ban... 🤨",color=Colour.from_rgb(255,0,0))
         msg_days_info = f"pour **{how_much_days} jours**" if self.bot.users_data[str(guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["Definitive"] is False else "**définitivement**"
@@ -82,7 +82,7 @@ class AutoMessagesSendSystem(commands.Cog):
         mp_ban_message.set_author(name=guild.name,icon_url=guild.icon_url)
         mp_ban_message.set_footer(text=member.name,icon_url=member.avatar_url)
         # Ticket message
-        mp_ticket_message = Embed(title="> **Vous trouvez ce ban injustifier ?**",colour=Colour.from_rgb(255,0,0))
+        mp_ticket_message = Embed(title="> **Vous trouvez ce ban injustifiée ?**",colour=Colour.from_rgb(255,0,0))
         mp_ticket_message.add_field(name="Voici un Discord pour pouvoir êtres en relaxion avec un membre du staff",value="__https://discord.gg/Se2phANYrG__")
         mp_ticket_message.set_footer(text=f"Signé {guild.owner.name}.",icon_url=guild.owner.avatar_url)
         try:
@@ -137,8 +137,11 @@ class AutoMessagesSendSystem(commands.Cog):
                                 final_messages[n].add_field(name=field.name,value=field.value,inline=field.inline)
                             final_messages[n].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}. | Posté le {msg.created_at.date()}",icon_url=msg.guild.icon_url)
                     else:
-                        final_messages.append(Embed())
-                        final_messages[0].add_field(name=f"Message posté le {msg.created_at.date()}",value=msg.content)
+                        try:
+                            msg_tmp = Embed().add_field(name=f"Message posté le {msg.created_at.date()}",value=msg.content)
+                        except HTTPException:
+                            msg_tmp = Embed(description=msg.content)
+                        final_messages.append(msg_tmp)
                         final_messages[0].set_footer(text=f"Le message a été publié sur {text_channel.name} dans {message.guild.name}.",icon_url=msg.guild.icon_url)
                     filename = []
                     for att in msg.attachments:
@@ -154,9 +157,16 @@ class AutoMessagesSendSystem(commands.Cog):
                         await message.channel.send(embed=embd)
 
     async def on_guild_message(self,guild):
-        guild_message = Embed(title="> Escarbot est dans la place !",colour=Colour.from_rgb(0,0,0))
-        guild_message.add_field(name="Merci d'avoir choisi·e Escarbot.",value="Escarbot votre bot multifonction.")
-        guild_message.add_field(name="Wiki !",value="Pour plus de détails\nVous avez droit au Wiki de Escarbot -> https://github.com/NaulaN/Escarbot-py/wiki",inline=False)
+        guild_message = Embed(colour=Colour.from_rgb(0,0,0),description="Merci d'avoir choisi·e Escarbot !")
+        guild_message.set_author(name="Escarbot est dans la place !",icon_url=self.bot.user.avatar_url)
+        guild_message.set_image(url="https://eapi.pcloud.com/getpubthumb?code=XZncd0Z7XdcnA9yc54RdH5VX8AnE80DFJrX&linkpassword=undefined&size=1599x305&crop=0&type=auto")
+        guild_message.add_field(name="⚪ Fiabilité:",value="Ce bot ne vous garantit par une fiabilité à 100%, si vous n'avez pas confiance à ce bot, dirigez-vous sur un bot certifié et plus fiable.\nCeci est un petit projet 'freelance'. Pour plus de [details](https://github.com/NaulaN/Escarbot-py#-fiabilit%C3%A9)",inline=False)
+        guild_message.add_field(name="⚪ Wiki:",value="Pour plus de détails, vous avez droit au [Wiki.](https://github.com/NaulaN/Escarbot-py/wiki)",inline=False)
+        guild_message.add_field(name="⚪ Hébergement du Bot:",value="Ce bot est hébergé chez un domicile donc, ne garantit en aucun cas d'un fonctionnement 24h/24 et 7j/7\nDonc, il pourrait avoir des arrêts d'hébergement du serveur, une ou deux sur quelques mois (donc peu de coupure), les coupures peuvent durée entre quelques minutes ou bien quelques jours\nC'est coupure peut être prévu par le développer\n Si jamais le Bot est inactif depuis plus 1 mois, contactez-le [developer](https://discord.gg/yEvBg8CPaM) ! Il vous dira plus d'informations sur la coupure.",inline=False)
+        guild_message.add_field(name="⚪ Bot sous licence !",value="Ce bot est sous licence MIT.\nPour plus d'information sur la [Licence.](https://github.com/NaulaN/Escarbot-py/blob/master/LICENSE) 👀",inline=False)
+        guild_message.add_field(name="⚪ Conseil:",value="Invitez des membres si vous avez terminé votre à 100% serveur, pas avant !\nDe plus, plusieurs personnes font cette erreur, ne le faite surtout pas !\nEn conclusion, il pourrait avoir de nombreux soucis si vous invitez des gens sans que le serveur soit terminé.",inline=False)
+        guild_message.add_field(name="⚪ Aide rapide:",value="Vous pouvez execute la commande `!help` ou bien `/help` pour avoir une documentation rapide non détaillé")
+        guild_message.set_footer(text="Copyright (c) 2021 CHRZ Developement",icon_url="https://avatars.githubusercontent.com/u/67024770?s=400&u=24615cb4001020dbe7900d45f8c85a9c3c5d0725&v=4")
         await guild.system_channel.send(embed=guild_message)
 
     @commands.Cog.listener()
@@ -172,11 +182,7 @@ class AutoMessagesSendSystem(commands.Cog):
     async def on_guild_join(self,guild): await self.on_guild_message(guild)
 
     @commands.Cog.listener()
-    async def on_member_ban(self,guild,user):
-        how_much_days = self.bot.users_data[str(guild.id)][str(user.id)]["CriminalRecord"]["BanSystem"]["how_much_days"]
-        why = self.bot.users_data[str(guild.id)][str(user.id)]["CriminalRecord"]["BanInfo"]["Why"]
-        print(f"[{datetime.datetime.today().date()}] L'utilisateur {user.name} à étais ban")
-        await self.ban_message(guild,user,how_much_days,why)
+    async def on_member_ban(self,guild,user): print(f"[{datetime.datetime.today().date()}] L'utilisateur {user.name} à étais ban")
 
     @commands.Cog.listener()
     async def on_member_unban(self,guild,user):
@@ -194,7 +200,11 @@ class AutoMessagesSendSystem(commands.Cog):
                 await self.create_vocal_message(member)
 
     @commands.Cog.listener()
-    async def on_command(self,ctx):
+    async def on_command_completion(self,ctx):
+        if str(ctx.command.name) == "ban":
+            command,*args = str(ctx.message.content).split(" ")
+            member,how_much_days,why = args
+            await self.ban_message(ctx.guild,member,how_much_days,why)
         if str(ctx.command.name) in ["warning","warn"]:
             pass
         if str(ctx.command.name) == "mute":

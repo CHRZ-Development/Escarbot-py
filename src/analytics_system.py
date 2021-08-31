@@ -13,31 +13,47 @@ class Analytics(commands.Cog):
 
 	async def refresh_counter(self,guild):
 		""" refresh_counter() -> Refresh the vocal channel title which display the stat. """
-		vocal_channel = utils.get(guild.voice_channels,id=int(self.bot.guilds_data[str(guild.id)]["messages_ID"]["stat"]))
-		print(f"[{datetime.datetime.today().date()}] Le compteur de membre à étais actualisée, il affiche {self.title_members_channel(self.stats[guild.id]['all_members'])}")
-		return await vocal_channel.edit(name=self.title_members_channel(self.stats[guild.id]["all_members"]))
+		for channel_database in self.bot.guilds_data[str(guild.id)]["channels"]:
+			if channel_database["function"] in ["members_counter"]:
+				vocal_channel = utils.get(guild.voice_channels,id=int(channel_database["channel_id"]))
+				await vocal_channel.edit(name=f"👤｜{self.stats[guild.id]['all_members']}・𝘔𝘦𝘮𝘣𝘳𝘦𝘴")
+				print(f"[{datetime.datetime.today().date()}] Le compteur de membre à étais actualisée, il affiche {self.title_members_channel(self.stats[guild.id]['all_members'])} dans {guild.name}")
+				break
 
 	async def count_members(self,guild):
 		""" count_members() -> Count all members in members role. """
-		role_members = utils.get(guild.roles,id=int(self.bot.guilds_data[str(guild.id)]["roles"][0]["role_id"]))
 		self.stats[guild.id] = {"all_members": 0}
-		self.stats[guild.id]["all_members"] = len(role_members.members)
-		return await self.refresh_counter(guild)
+		try:
+			role_members = utils.get(guild.roles,id=int(self.bot.guilds_data[str(guild.id)]["roles"][0]["role_id"]))
+		except IndexError:
+			return
+		for member in role_members.members:
+			if member.bot is False:
+				self.stats[guild.id]["all_members"] += 1
 
 	@commands.Cog.listener()
 	async def on_ready(self):
 		for guild in self.bot.guilds:
-			if self.bot.guilds_data[str(guild.id)]["functions"]["stat"]:
-				await self.count_members(guild)
+			try:
+				self.bot.guilds_data[str(guild.id)]["channels"]
+			except KeyError:
+				pass
+			else:
+				for channel_database in self.bot.guilds_data[str(guild.id)]["channels"]:
+					if channel_database["function"] in ["members_counter"]:
+						await self.count_members(guild)
+						await self.refresh_counter(guild)
 
 	@commands.Cog.listener()
 	async def on_member_join(self,member):
-		if self.bot.guilds_data[str(member.guild.id)]["functions"]["stat"]:
-			self.stats[member.guild.id]["all_members"] += 1 if not member.bot else 0
-			await self.refresh_counter(member.guild)
+		for channel_database in self.bot.guilds_data[str(member.guild.id)]["channels"]:
+			if channel_database["function"] in ["members_counter"]:
+				self.stats[member.guild.id]["all_members"] += 1 if not member.bot else 0
+				await self.refresh_counter(member.guild)
 
 	@commands.Cog.listener()
 	async def on_member_remove(self,member):
-		if self.bot.guilds_data[str(member.guild.id)]["functions"]["stat"]:
-			self.stats[member.guild.id]["all_members"] -= 1 if not member.bot else 0
-			await self.refresh_counter(member.guild)
+		for channel_database in self.bot.guilds_data[str(member.guild.id)]["channels"]:
+			if channel_database["function"] in ["members_counter"]:
+				self.stats[member.guild.id]["all_members"] -= 1 if not member.bot else 0
+				await self.refresh_counter(member.guild)

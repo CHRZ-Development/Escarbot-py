@@ -100,10 +100,10 @@ class MessagesCommand(Messages,commands.Cog):
         Messages.__init__(self,self,bot)
         self.bot = bot
         self.send_message_func = {"custom_message": self.custom_message,"roles_message": self.roles_message,"embed_message": self.embed_message,"rules_message": self.rules_message,"ticket_message": self.ticket_message}
+        self.send.add_check(self.bot.check_permission)
 
     @commands.command(name="send")
-    @commands.is_owner()
-    async def send_message(self,ctx,option,*args):
+    async def send(self,ctx,option,*args):
         await self.send_message_func[option](ctx,args)
         await ctx.message.delete()
 

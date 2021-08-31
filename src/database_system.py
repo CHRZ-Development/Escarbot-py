@@ -21,26 +21,36 @@ class DataBaseSystem(commands.Cog):
         """ on_guild_join() -> Create database for the guild which as been added the Bot. """
         print(f"{guild.name} vient de m'ajouté !")
         self.bot.guilds_data[str(guild.id)] = self.bot.template
+        self.bot.users_data[str(guild.id)] = {}
+        for member in guild.members:
+            try:
+                self.bot.users_data[str(guild.id)][str(member.id)]
+            except KeyError:
+                self.bot.users_data[str(guild.id)][str(member.id)] = self.bot.template_user
         self.refresh_database("guilds_data.json")
+        self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_guild_remove(self,guild):
         """ on_guild_remove() -> Create database for the guild which as been removed the Bot. """
         print(f"{guild.name} vient de me supprimé !")
         self.bot.guilds_data.pop(str(guild.id))
+        self.bot.users_data.pop(str(guild.id))
         self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_member_join(self,member):
         """ on_member_join() -> Create database for the member who as been joined in the guild. """
-        self.bot.guilds_data[str(member.guild.id)][str(member.id)] = self.bot.template_user
+        self.bot.users_data[str(member.guild.id)][str(member.id)] = self.bot.template_user
         self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
     async def on_member_remove(self,member):
         """ on_member_remove() -> Create database for the member who as been removed in the guild. """
-        if self.bot.users_data[str(member.guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"] is False:
-            self.bot.guilds_data[str(member.guild.id)].pop(str(member.id))
+        try:
+            self.bot.users_data[str(member.guild.id)][str(member.id)]["CriminalRecord"]["BanInfo"]["IsBanned"]
+        except KeyError:
+            self.bot.users_data[str(member.guild.id)].pop(str(member.id))
             self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
@@ -62,8 +72,8 @@ class DataBaseSystem(commands.Cog):
         self.refresh_database("users_data.json")
 
     @commands.Cog.listener()
-    async def on_command(self,ctx):
-        command_name,*args = ctx.message.content
+    async def on_command_completion(self,ctx):
+        command_name,*args = str(ctx.message.content).split(" ")
         if str(ctx.command.name) == "ban":
             self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["IsBanned"] = True
             if self.bot.users_data[str(ctx.guild.id)][args[0]]["CriminalRecord"]["BanInfo"]["Why"] is not None:
@@ -82,7 +92,9 @@ class DataBaseSystem(commands.Cog):
                     self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"].append(args[1])
                 else:
                     self.bot.users_data[str(ctx.guild.id)][str(ctx.id)]['CriminalRecord']['BanInfo']['TimeOfBan']["Day"] = [args[1]]
-        self.refresh_database("users_data.json")
+            self.refresh_database("users_data.json")
+        if str(ctx.command.name) in ["edit", "attribute"]:
+            self.refresh_database("guilds_data.json")
 
     @commands.Cog.listener()
     async def on_message(self,message):

@@ -33,6 +33,9 @@ class GetCommand(commands.Cog):
                     if int(role_database["role_id"]) == int(args[0]):
                         await self.info_role_msg(ctx,n,role_database)
 
+    async def get_channel_attribute(self):
+        pass
+
     @commands.command(name="get")
     @commands.is_owner()
     async def get_command(self,ctx,option,*args):

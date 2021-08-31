@@ -25,7 +25,7 @@ from discord.ext.commands import CommandNotFound
 from discord_slash import ButtonStyle,ComponentContext,SlashCommand,SlashContext
 from discord_slash.utils.manage_components import create_actionrow,create_button,wait_for_component
 
-from commands.get import GetCommand
+from src.commands.get import GetCommand
 from src.commands.mute import MuteCommand
 from src.commands.ban import BanCommand
 from src.commands.help import HelpCommand
@@ -78,7 +78,7 @@ class Bot(commands.Bot):
         self.success_footer = ["Effectué avec succès grâce à Escarbot, votre serviteur !","Utilisé les nouvelles commandes slash ! Effectué avec succès grâce à Escarbot, votre serviteur !"]
         self.error_footer = ["Escarbot n'a pas pu effectué votre demande !","Utilisé les nouvelles commandes slash ! Escarbot n'a pas pu effectué votre demande !"]
         # Template for database
-        self.template = {"roles_can_attributes": [],"roles_emoji_reaction": {},"functions": {"stat": False,"verif_rules": True,"create_personal_vocal": False},"categories_ID": {"vocals_channel": 0},"vocals_ID": {"create_vocal": 0},"messages_ID": {"roles": 0,"rules": 0,"stat": 0,},"messages": {"welcome": [],"rules": {"authorized": [],"forbidden": [],"verif_rules": ["> Avez-vous pris connaisance des régles ?","Si oui, clické sur la reaction ci-dessous"]}},"roles": {},"roles_info": {}}
+        self.template = {"roles": [],"roles_can_attributes": {},"channels": [],"functions": {"members_counter": False,"create_personal_vocal": False,"stat_message": False}}
         self.template_user = {"JoinedAt": {"Year": 0,"Month": 0,"Day": 0},"CriminalRecord": {"NumberOfMutes": 0,"NumberOfWarnings": 0,"NumberOfReports": 0,"NumberOfBans": 0,"BanInfo": {"Definitive": False,"IsBanned": False,"WhoAtBanned": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None},"TimeOfBan": {"Year": None,"Month": None,"Day": None}},"MuteInfo": {"IsMuted": False,"WhoAtMute": None,"WhenHeAtBeenBanned": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfMute": {"Year": None,"Month": None,"Day": None,"Hours": None}},"BanSystem": {"day_counter": 0,"how_much_days": 0},"MuteSystem": {},"ReportInfo": {"NumberOfReports": 0,"WhoReportedIt": {"Users": [],"When": [],"Messages": []}},"RestrictedInfo": {"IsRestricted": False,"WhoAtRestricted": None,"WhenHeAtBeenRestricted": {"Year": None,"Month": None,"Day": None,"Hour": None},"TimeOfRestricted": {"Year": None,"Month": None,"Day": None}}},"NumberOfMessages": {}}
         # Guilds settings
         guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
