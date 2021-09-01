@@ -30,7 +30,7 @@ _[New Escarbot project](https://github.com/NaulaN/Escarbot-java)_
 * `googleclientapi` version: `2.10.0`
 
 ### ❗ Fiabilité.
-> ❗ Ce projet ne vous garantie en aucun cas d'un fiabilité à 💯 !
+> ❗ Ce projet ne vous garantie en aucun cas d'une fiabilité à 💯 !
 * Ceci est une "freelance" (Entre de grosse guillemet) donc je ne touche en aucun cas de l'argent sur ce projet, donc garantie pas une fiabilité sur le fonctionnement !
 * Ce projet étais plus principalement pour moi ! Mais ce bot est compatible sur plusieurs serveurs sans "aucun probleme"
 * Aussi, Il ne garanti en aucun cas un hebergement 24h/24 et 7j/7 et ne garanti pas non plus d'un durée de vie indeterminée.
