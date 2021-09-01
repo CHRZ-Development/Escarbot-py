@@ -1,5 +1,5 @@
 ![Escarbot Banner](https://eapi.pcloud.com/getpubthumb?code=XZRid0ZTDpXjJtGtXHb2MjxJB6w57vMB4V0&linkpassword=undefined&size=1078x190&crop=0&type=auto)
-# Escarbot (Python édition) _abandoned projects_
+# Escarbot (Python édition) _"abandoned projects"_
 French bot | **Serveur Discord:** _https://discord.gg/yEvBg8CPaM_
 
 _[New Escarbot project](https://github.com/NaulaN/Escarbot-java)_
@@ -8,6 +8,7 @@ _[New Escarbot project](https://github.com/NaulaN/Escarbot-java)_
 * [Information.](#-information)
 * [Librairies.](#-librairies)
 * [Fiabilité.](#-fiabilité)
+* [Base de donnée.](#-base-de-donnée)
 * [Wiki.](https://github.com/NaulaN/Escarbot-py/wiki)
     * [Premiers pas.](https://github.com/NaulaN/Escarbot-py/wiki/Premiers-pas)
     * [Commandes.](https://github.com/NaulaN/Escarbot-py/wiki/Commandes)
@@ -21,8 +22,8 @@ _[New Escarbot project](https://github.com/NaulaN/Escarbot-java)_
 
 ### 📦 Librairies.
 > **Le projet à étais crée avec:**
-* `discord.py` version: `1.7.3` _(💀 `discord.py` 💀)_
-* `discord_slash` version: `3.0.1` _(💀 `discord_slash` 💀)_
+* `discord.py` version: `1.7.3` _(💀 `discord.py`, librairie plus maintenue)_
+* `discord_slash` version: `3.0.1` _(💀 `discord_slash`, librairie plus maintenue)_
 * `googletrans` version: `3.1.0a0`
 * `TwitchAPI` version: `2.3.2`
 * `googleoauth` version: `1.32.0`
@@ -35,6 +36,11 @@ _[New Escarbot project](https://github.com/NaulaN/Escarbot-java)_
 * Aussi, Il ne garanti en aucun cas un hebergement 24h/24 et 7j/7 et ne garanti pas non plus d'un durée de vie indeterminée.
 * Donc si vous utilisez ce bot, c'est a vos risque et péril !
 
+### 💀 Base de donnée.
+> 🔨 On appelle ca, tu bricolage.
+* Ce bot prend le `.json` comme base de donnée...
+* Cela veut dire qu'il est plus lent qu'une vrai base de donnée.
+* MySQL ? Coming soon ? 
 
 
 _Copyright (c) 2021 CHRZ Developement._
