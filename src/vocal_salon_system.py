@@ -9,17 +9,16 @@ class VocalSalonSystem(commands.Cog):
 
     def __init__(self,bot):
         self.bot = bot
-        self.generic_name = lambda name_member: f"{name_member}'s Channel."
 
-    async def create_vocal(self,guild,member):
+    async def create_vocal(self,database,guild,member):
         """ create_vocal() -> Create a channel when the member as joined "Crée un salon" """
-        get_category = lambda gld,id_: utils.get(gld.categories,id=id_)
+        category = utils.get(guild.categories,id=int(database["category_id"]))
         # Create and get the new vocal channel
-        new_channel = await guild.create_voice_channel(self.generic_name(member.name),bitrate=64000,category=get_category(guild,self.bot.guilds_data[str(guild.id)]["categories_ID"]["vocals_channel"]))
+        new_channel = await guild.create_voice_channel(f"{member.name}'s Channel.",bitrate=64000,category=category)
         # Log
         print(f"[{datetime.datetime.today().date()}] L'utilisateur {member.name} à crée un salon dans {guild.name} !")
         # Move the member to the vocal channel created
-        await new_channel.edit(position=2)
+        await new_channel.edit(position=len(category.voice_channels)+1)
         await member.move_to(new_channel)
 
     async def delete_vocal(self,before,member):
@@ -33,10 +32,11 @@ class VocalSalonSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self,member,before,after):
-        if self.bot.guilds_data[str(member.guild.id)]["functions"]["create_personal_vocal"]:
-            if after.channel is not None:
-                if int(after.channel.id) == int(self.bot.guilds_data[str(member.guild.id)]["vocals_ID"]["create_vocal"]):
-                    return await self.create_vocal(member.guild,member)
-            if before.channel is not None:
-                if int(before.channel.id) != int(self.bot.guilds_data[str(member.guild.id)]["vocals_ID"]["create_vocal"]):
-                    return await self.delete_vocal(before,member)
+        for database in self.bot.guilds_data[str(member.guild.id)]["channels"]:
+            if database["function"].count("create_private_vocal") == 1:
+                if after.channel is not None:
+                    if int(after.channel.id) == int(database["channel_id"]):
+                        return await self.create_vocal(database,member.guild,member)
+                if after.channel is None:
+                    if int(before.channel.id) != int(database["channel_id"]):
+                        return await self.delete_vocal(before,member)

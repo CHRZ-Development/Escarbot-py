@@ -15,6 +15,7 @@ class AttributesCommand(commands.Cog):
         self.bot = bot
         self.attribute_func = {"can_attribute_role": self.role_can_attribute,"role": self.attribute_role,"channel": self.attribute_channel}
         self.refresh_database = lambda: self.bot.file.write(self.bot.guilds_data,"guilds_data.json",f"{os.getcwd()}/res/")
+        self.attribute.add_check(self.bot.check_permission)
 
     async def role_can_attribute(self,ctx,args):
         """ attribute_role_emoji() -> !attribute role_emoji *args
@@ -49,7 +50,7 @@ class AttributesCommand(commands.Cog):
             if len(args) > 3:
                 raise ArgumentError(args)
             channel = await self.bot.fetch_channel(int(channel_id))
-            self.bot.guilds_data[str(ctx.guild.id)]["channels"].append({"function": function,"channel_id": channel_id,"info": info,"channel_name": channel.name, "category_id": channel.category_id})
+            self.bot.guilds_data[str(ctx.guild.id)]["channels"].append({"function": str(function).split(","),"channel_id": channel_id,"info": info,"channel_name": channel.name, "category_id": channel.category_id})
             self.refresh_database()
 
     async def attribute_role(self,ctx,args):
@@ -68,13 +69,11 @@ class AttributesCommand(commands.Cog):
             self.refresh_database()
 
     @commands.command(name="attribute")
-    @commands.is_owner()
-    async def attribute_value(self,ctx,option,*args):
+    async def attribute(self,ctx,option,*args):
         """ attribute_value() -> !attribute
             * It allow to settings the server (Only owner can execute this command) """
         try:
             await self.attribute_func[option](ctx,args)
         except KeyError:
             raise InvalidSubcommand(option)
-        await ctx.message.delete()
-
+        return await ctx.message.delete()

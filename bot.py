@@ -33,6 +33,7 @@ from src.commands.edit import EditCommand
 from src.commands.ping import (PingCommand,PingSlash)
 from src.commands.unban import UnBanCommand
 from src.commands.nickname import (Nickname,NicknameCommand,NicknameSlash)
+from src.commands.remove import RemoveCommand
 from src.commands.myvocal import (MyVocalCommand,MyVocalSlash)
 from src.commands.userinfo import (UserInfoCommand,UserInfoSlash)
 from src.commands.messages import (MessagesCommand,MessagesSlash)
@@ -94,12 +95,14 @@ class Bot(commands.Bot):
 
     async def check_permission(*args):
         self,ctx = args
-        for n,role_database in enumerate(self.guilds_data[str(ctx.guild.id)]["roles"]):
-            for role in ctx.author.roles:
-                if (int(role_database["role_id"]) == int(role.id)) and (role_database["can_execute_command"].count(ctx.command.name) >= 1) or (role_database["can_execute_command"].count("*") >= 1):
-                    return True
-            if int(n) == len(self.guilds_data[str(ctx.guild.id)]["roles"])-1:
-                return False
+        if ctx.guild.owner != ctx.author:
+            for n,role_database in enumerate(self.guilds_data[str(ctx.guild.id)]["roles"]):
+                for role in ctx.author.roles:
+                    if (int(role_database["role_id"]) == int(role.id)) and (role_database["can_execute_command"].count(ctx.command.name) >= 1) or (role_database["can_execute_command"].count("*") >= 1):
+                        return True
+                if int(n) == len(self.guilds_data[str(ctx.guild.id)]["roles"])-1:
+                    return False
+        return True
 
     async def send_message_after_invoke(self,ctx,success_msg: list,error_msg: list,action=None,value=None,_error=None):
         msg = Embed(title=self.titles[0] if value is None else self.titles[1])
@@ -137,7 +140,7 @@ class Bot(commands.Bot):
         self.add_cog(all_slashes[1])
         for slash in all_slashes:
             self.slash.get_cog_commands(slash)
-        all_commands = [GetCommand(self),MuteCommand(self),NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
+        all_commands = [RemoveCommand(self),GetCommand(self),MuteCommand(self),NicknameCommand(self),ServerInfoCommand(self),UserInfoCommand(self),PingCommand(self),MyVocalCommand(self),UnBanCommand(self),BanCommand(self),EditCommand(self),MessagesCommand(self),AttributesCommand(self),HelpCommand(self)]
         for command in all_commands:
             self.add_cog(command)
         all_systems = [TicketSystem(self),DataBaseSystem(self),AutoMessagesSendSystem(self),BackupSystem(self),Analytics(self),RolesSystem(self),VocalSalonSystem(self)]

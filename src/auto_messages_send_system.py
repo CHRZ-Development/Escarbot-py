@@ -196,8 +196,9 @@ class AutoMessagesSendSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self,member,before,after):
         if before.channel is not None:
-            if int(before.channel.id) == int(self.bot.guilds_data[str(member.guild.id)]["vocals_ID"]["create_vocal"]):
-                await self.create_vocal_message(member)
+            for database in self.bot.guilds_data[str(member.guild.id)]["channels"]:
+                if database["function"] in ["create_private_vocal"]:
+                    await self.create_vocal_message(member)
 
     @commands.Cog.listener()
     async def on_command_completion(self,ctx):

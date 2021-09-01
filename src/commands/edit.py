@@ -17,6 +17,7 @@ class EditCommand(commands.Cog):
 		# DataBase directory
 		self.guilds_data_path = os.path.join(f"{os.getcwd()}/res/","guilds_data.json")
 		self.edit_func = {"channel": self.edit_channel,"role": self.edit_role,"members_stat": self.edit_stat_members_channel,"create_personal_vocal": self.edit_create_vocal_channel,"function": self.edit_function,"nickname_member": self.edit_nickname_member}
+		self.edit.add_check(self.bot.check_permission)
 
 	async def edit_role(self,ctx,args):
 		""" edit_role() -> !edit role *args
@@ -87,8 +88,7 @@ class EditCommand(commands.Cog):
 			json.dump(self.bot.guilds_data,f)
 
 	@commands.command(name='edit')
-	@commands.is_owner()
-	async def edit_command(self,ctx,option,*args):
+	async def edit(self,ctx,option,*args):
 		""" edit_command() -> !edit
 			* It allow to edit settings the server and more """
 		try:
